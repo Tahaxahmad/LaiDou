@@ -20,13 +20,26 @@
         <div class="location-card fade-in-second">
             <div class="location-input">
                 <div class="input-group">
-                    <input type="text" placeholder="From" id="from-input">
+                    <input type="text" 
+                           placeholder="From" 
+                           id="from-input" 
+                           autocomplete="off"
+                           maxlength="50">
                     <img src="Assets/pin.png" alt="From location" class="location-icon">
+                    <div class="suggestions-container" id="from-suggestions"></div>
                 </div>
                 <div class="input-group">
-                    <input type="text" placeholder="To" id="to-input">
+                    <input type="text" 
+                           placeholder="To" 
+                           id="to-input"
+                           autocomplete="off"
+                           maxlength="50">
                     <img src="Assets/flag.png" alt="To location" class="location-icon">
+                    <div class="suggestions-container" id="to-suggestions"></div>
                 </div>
+            </div>
+            <div class="search-container">
+                <button class="search-button" id="search-routes">Search Routes</button>
             </div>
         </div>
 
