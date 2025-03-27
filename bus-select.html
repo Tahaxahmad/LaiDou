@@ -5,40 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Selection - Lai Dou</title>
     <link rel="stylesheet" href="bus-select.css">
+    <script defer src="bus-select.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="booking-details">
-            <h2>Bus Booking</h2>
-            <div class="bus-icon">
-                <img src="Assets/bus.png" alt="Bus Icon">
+        <div class="header fade-in">
+            <div class="title">BUS</div>
+            <div class="nav-buttons">
+                <button class="nav-btn">TRAIN</button>
+                <button class="nav-btn">HOME</button>
             </div>
-            <div class="booking-form">
-                <form id="bus-form">
-                    <div class="form-group">
-                        <label for="from">Departure Station:</label>
-                        <input type="text" id="from" name="from" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="to">Destination Station:</label>
-                        <input type="text" id="to" name="to" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="date">Travel Date:</label>
-                        <input type="date" id="date" name="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="time">Departure Time:</label>
-                        <select id="time" name="time" required>
-                            <option value="">Select Time</option>
-                            <option value="morning">Morning (6AM - 12PM)</option>
-                            <option value="afternoon">Afternoon (12PM - 6PM)</option>
-                            <option value="evening">Evening (6PM - 12AM)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="submit-btn">Book Bus Ticket</button>
-                </form>
+        </div>
+        
+        <div class="location-card fade-in-second">
+            <div class="location-input">
+                <div class="input-group">
+                    <input type="text" placeholder="From" id="from-input">
+                    <img src="Assets/pin.png" alt="From location" class="location-icon">
+                </div>
+                <div class="input-group">
+                    <input type="text" placeholder="To" id="to-input">
+                    <img src="Assets/flag.png" alt="To location" class="location-icon">
+                </div>
             </div>
+        </div>
+
+        <div class="placeholder-text slide-up">
+            <span class="typing-text"></span>
         </div>
     </div>
 </body>
