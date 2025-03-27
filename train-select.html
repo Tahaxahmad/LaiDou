@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Selection - Lai Dou</title>
+    <link rel="stylesheet" href="train-select.css">
+</head>
+<body>
+    <div class="container">
+        <div class="booking-details">
+            <h2>Train Booking</h2>
+            <div class="train-icon">
+                <img src="Assets/train.png" alt="Train Icon">
+            </div>
+            <div class="booking-form">
+                <form id="train-form">
+                    <div class="form-group">
+                        <label for="from">Departure Station:</label>
+                        <input type="text" id="from" name="from" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="to">Destination Station:</label>
+                        <input type="text" id="to" name="to" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Travel Date:</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="class">Travel Class:</label>
+                        <select id="class" name="class" required>
+                            <option value="">Select Class</option>
+                            <option value="first">First Class</option>
+                            <option value="second">Second Class</option>
+                            <option value="economy">Economy Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Departure Time:</label>
+                        <select id="time" name="time" required>
+                            <option value="">Select Time</option>
+                            <option value="morning">Morning (6AM - 12PM)</option>
+                            <option value="afternoon">Afternoon (12PM - 6PM)</option>
+                            <option value="evening">Evening (6PM - 12AM)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">Book Train Ticket</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
