@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Bus Selection - Lai Dou</title>
+    <link rel="stylesheet" href="bus-select.css">
+    <script defer src="bus-select.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header fade-in">
+            <h1 class="title">BUS</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn transport-btn" onclick="window.location.href='train-select.html'">
+                    <img src="Assets/train.png" alt="Train" class="nav-icon">
+                </button>
+                <button class="nav-btn transport-btn" onclick="window.location.href='minibus-select.html'">
+                    <img src="Assets/minibus.png" alt="MiniBus" class="nav-icon">
+                </button>
+                <button class="nav-btn home-btn" onclick="window.location.href='index.html'">
+                    <img src="Assets/home.png" alt="Home" class="nav-icon">
+                </button>
+            </div>
+        </div>
+        
+        <div class="location-card fade-in-second">
+            <div class="location-input">
+                <div class="input-group">
+                    <input type="text" 
+                           placeholder="From" 
+                           id="from-input" 
+                           autocomplete="off">
+                    <img src="Assets/pin.png" alt="From location" class="location-icon">
+                    <div class="suggestions-container" id="from-suggestions"></div>
+                </div>
+                <div class="input-group">
+                    <input type="text" 
+                           placeholder="To" 
+                           id="to-input"
+                           autocomplete="off">
+                    <img src="Assets/flag.png" alt="To location" class="location-icon">
+                    <div class="suggestions-container" id="to-suggestions"></div>
+                </div>
+            </div>
+            <div class="search-container">
+                <button class="search-button" id="search-routes">Search Routes</button>
+            </div>
+        </div>
+
+        <div class="placeholder-text slide-up">
+            <span class="typing-text"></span>
+        </div>
+    </div>
+</body>
+</html> 
