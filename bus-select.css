@@ -198,7 +198,7 @@ body {
     pointer-events: none;
     white-space: nowrap;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 6px rgba(255, 87, 34, 0.2);
+    box-shadow: 0 2px 6px rgba(229, 57, 53, 0.2);
     margin-bottom: 20px;
 }
 
@@ -209,14 +209,21 @@ body {
 }
 
 .search-button:hover {
-    background-color: #e53935;
+    background-color: #d32f2f;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 87, 34, 0.3);
+    box-shadow: 0 4px 8px rgba(229, 57, 53, 0.3);
 }
 
 .search-button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(255, 87, 34, 0.2);
+    box-shadow: 0 2px 4px rgba(229, 57, 53, 0.2);
+}
+
+.search-button:disabled {
+    background-color: #ffcdd2;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .suggestions-container {
@@ -239,13 +246,10 @@ body {
 }
 
 .suggestion-item {
-    padding: 12px 15px;
+    padding: 8px 15px;
     cursor: pointer;
     font-size: 1.2em;
-    color: #666;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    color: #333;
 }
 
 .suggestion-item:hover {
@@ -324,6 +328,21 @@ body {
         padding: 25px;
         min-height: 60vh;
     }
+
+    .results-container {
+        margin-top: 15px;
+        padding: 15px;
+    }
+
+    .route-details {
+        margin: 10px 0;
+        padding: 12px;
+    }
+
+    .route-header {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
 }
 
 .nav-buttons button:hover {
@@ -352,4 +371,123 @@ input:focus {
 
 .search-button:hover {
     background-color: #d32f2f;
+}
+
+.results-container {
+    background-color: white;
+    border-radius: 15px;
+    margin-top: 20px;
+    padding: 20px;
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.results-container.active {
+    display: block;
+}
+
+.route-header {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e53935;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.route-details {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    position: relative;
+}
+
+.route-number {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.route-path {
+    font-size: 16px;
+    color: #666;
+    margin: 5px 0;
+}
+
+.route-path-tc {
+    font-size: 14px;
+    color: #888;
+    margin-top: 5px;
+}
+
+.direction-label {
+    font-size: 14px;
+    color: #e53935;
+    text-transform: uppercase;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.eta-container {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.eta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 0;
+    color: #666;
+}
+
+.eta-time {
+    font-weight: bold;
+    color: #e53935;
+}
+
+.eta-label {
+    font-size: 14px;
+    color: #888;
+}
+
+.no-eta {
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.refresh-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e53935;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 15px;
+    transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+    background-color: rgba(229, 57, 53, 0.1);
+}
+
+.info-container {
+    position: relative;
+    flex: 1;
+    margin-top: -15px;
+    z-index: 1;
+}
+
+.placeholder-text.hidden {
+    display: none;
 } 
