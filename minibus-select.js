@@ -1,193 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Real Hong Kong minibus routes and stops data
-    const minibusStops = [
-        // Hong Kong Island Routes
-        {
-            stop_id: "HKI01",
-            name: "Causeway Bay (Pennington Street)",
-            nameZh: "銅鑼灣 (邊寧頓街)",
-            lines: ["4C", "5", "14M", "21A"]
-        },
-        {
-            stop_id: "HKI02",
-            name: "North Point (King's Road)",
-            nameZh: "北角 (英皇道)",
-            lines: ["4C", "2", "14M", "21A", "31"]
-        },
-        {
-            stop_id: "HKI03",
-            name: "Sai Wan Ho (Shau Kei Wan Road)",
-            nameZh: "西灣河 (筲箕灣道)",
-            lines: ["20M", "32", "2", "31"]
-        },
-        {
-            stop_id: "HKI04",
-            name: "Wan Chai (Johnston Road)",
-            nameZh: "灣仔 (莊士敦道)",
-            lines: ["4C", "5", "14M", "24A"]
-        },
-        {
-            stop_id: "HKI05",
-            name: "Central (Des Voeux Road)",
-            nameZh: "中環 (德輔道中)",
-            lines: ["4C", "5", "24A", "31"]
-        },
-        {
-            stop_id: "HKI06",
-            name: "Kennedy Town (Belcher's Street)",
-            nameZh: "堅尼地城 (卑路乍街)",
-            lines: ["10", "58", "8"]
-        },
-        {
-            stop_id: "HKI07",
-            name: "Shek Tong Tsui (Hill Road)",
-            nameZh: "石塘咀 (山道)",
-            lines: ["10", "8", "58"]
-        },
-        {
-            stop_id: "HKI08",
-            name: "Sai Ying Pun (Queen's Road West)",
-            nameZh: "西營盤 (皇后大道西)",
-            lines: ["10", "8", "24A"]
-        },
-
-        // Kowloon Routes
-        {
-            stop_id: "KLN01",
-            name: "Mong Kok (Dundas Street)",
-            nameZh: "旺角 (登打士街)",
-            lines: ["1A", "2", "3", "6", "12"]
-        },
-        {
-            stop_id: "KLN02",
-            name: "Jordan (Nathan Road)",
-            nameZh: "佐敦 (彌敦道)",
-            lines: ["1A", "3", "6", "12", "77M"]
-        },
-        {
-            stop_id: "KLN03",
-            name: "Tsim Sha Tsui (Canton Road)",
-            nameZh: "尖沙咀 (廣東道)",
-            lines: ["1A", "2", "77M", "78"]
-        },
-        {
-            stop_id: "KLN04",
-            name: "Wong Tai Sin (Sha Tin Pass Road)",
-            nameZh: "黃大仙 (沙田坳道)",
-            lines: ["18M", "19M", "65", "66"]
-        },
-        {
-            stop_id: "KLN05",
-            name: "Diamond Hill (Lung Poon Street)",
-            nameZh: "鑽石山 (龍蟠街)",
-            lines: ["18M", "20M", "65", "67"]
-        },
-        {
-            stop_id: "KLN06",
-            name: "Kwun Tong (Hip Wo Street)",
-            nameZh: "觀塘 (協和街)",
-            lines: ["13M", "15", "16M", "17"]
-        },
-        {
-            stop_id: "KLN07",
-            name: "Kowloon City (Junction Road)",
-            nameZh: "九龍城 (聯合道)",
-            lines: ["22", "23", "25", "27"]
-        },
-        {
-            stop_id: "KLN08",
-            name: "To Kwa Wan (Ma Tau Wai Road)",
-            nameZh: "土瓜灣 (馬頭圍道)",
-            lines: ["22", "23", "25", "28"]
-        },
-
-        // New Territories Routes
-        {
-            stop_id: "NT01",
-            name: "Tsuen Wan (Castle Peak Road)",
-            nameZh: "荃灣 (青山公路)",
-            lines: ["95K", "96M", "89", "90"]
-        },
-        {
-            stop_id: "NT02",
-            name: "Kwai Fong (Kwai Foo Road)",
-            nameZh: "葵芳 (葵富路)",
-            lines: ["95K", "87M", "89", "91"]
-        },
-        {
-            stop_id: "NT03",
-            name: "Tai Po Central",
-            nameZh: "大埔中心",
-            lines: ["20C", "21K", "25K", "26"]
-        },
-        {
-            stop_id: "NT04",
-            name: "Sheung Shui (San Wan Road)",
-            nameZh: "上水 (新運路)",
-            lines: ["52K", "54K", "55K", "56K"]
-        },
-        {
-            stop_id: "NT05",
-            name: "Yuen Long (Castle Peak Road)",
-            nameZh: "元朗 (青山公路)",
-            lines: ["44", "45", "46", "47"]
-        },
-        {
-            stop_id: "NT06",
-            name: "Tuen Mun (Tuen Mun Heung Sze Wui Road)",
-            nameZh: "屯門 (屯門鄉事會路)",
-            lines: ["44", "45", "48", "49"]
-        },
-        {
-            stop_id: "NT07",
-            name: "Sha Tin (Lion Rock Tunnel Road)",
-            nameZh: "沙田 (獅子山隧道公路)",
-            lines: ["65", "66", "67", "68A"]
-        },
-        {
-            stop_id: "NT08",
-            name: "Ma On Shan (Sai Sha Road)",
-            nameZh: "馬鞍山 (西沙路)",
-            lines: ["66", "67", "68A", "69"]
-        },
-        {
-            stop_id: "NT09",
-            name: "Tseung Kwan O (Po Lam Road)",
-            nameZh: "將軍澳 (寶琳路)",
-            lines: ["101M", "102", "103", "104"]
-        },
-        {
-            stop_id: "NT10",
-            name: "LOHAS Park",
-            nameZh: "日出康城",
-            lines: ["101M", "102", "103M"]
-        }
-    ];
+    const API_BASE_URL = 'https://data.etagmb.gov.hk';
 
     const elements = {
-        header: document.querySelector('.fade-in'),
-        locationCard: document.querySelector('.fade-in-second'),
-        placeholderText: document.querySelector('.slide-up'),
+        header: document.querySelector('.header'),
+        locationCard: document.querySelector('.location-card'),
+        placeholderText: document.querySelector('.placeholder-text'),
         typingText: document.querySelector('.typing-text'),
         searchButton: document.getElementById('search-routes'),
-        fromInput: document.getElementById('from-input'),
-        toInput: document.getElementById('to-input'),
-        routeInfo: document.querySelector('.route-info'),
-        routeMeta: document.querySelector('.route-meta'),
-        stepsContainer: document.getElementById('route-steps'),
-        fromSuggestions: document.getElementById('from-suggestions'),
-        toSuggestions: document.getElementById('to-suggestions'),
-        searchContainer: document.querySelector('.search-container')
+        minibusInput: document.getElementById('minibus-input'),
+        minibusInputContainer: document.querySelector('.input-group'),
+        minibusInputSuggestions: document.getElementById('minibus-suggestions'),
+        resultsContainer: document.getElementById('route-results'),
+        searchContainer: document.querySelector('.search-container'),
+        errorMessage: document.querySelector('.error-message')
     };
 
     const state = {
-        fromInputValid: false,
-        toInputValid: false,
-        lastValidFromValue: '',
-        lastValidToValue: ''
+        routes: [],
+        selectedRoute: null,
+        routeStops: null,
+        stopETAs: {},
+        refreshInterval: null,
+        isLoading: false
     };
 
-    const textToType = "Please input the location you're currently at and the destination you'd like to reach to show the routes.";
+    const textToType = "Please input a bus number to see the ETA information for all stops along that route.";
     let charIndex = 0;
 
     const animateWithDelay = (element, delay) => {
@@ -202,349 +39,552 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showError = (message) => {
-        if (elements.routeInfo) {
-            elements.routeInfo.classList.remove('visible');
-            elements.routeInfo.classList.add('hidden');
+        elements.resultsContainer.style.display = 'none';
+        elements.placeholderText.classList.remove('hidden');
+        elements.placeholderText.style.opacity = '1';
+        elements.errorMessage.textContent = message;
+        elements.errorMessage.style.display = 'block';
+        elements.typingText.textContent = 'Please try again later.';
+    };
+
+    const hideError = () => {
+        elements.errorMessage.style.display = 'none';
+        elements.errorMessage.textContent = '';
+    };
+
+    const fetchAPI = async (endpoint) => {
+        try {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error(`API Error for ${endpoint}:`, error);
+            throw error;
         }
+    };
+
+    const fetchAllRoutes = async () => {
+        try {
+            // First try to get all routes at once
+            try {
+                const response = await fetchAPI('/route');
+                const data = response.data;
+                if (data && data.routes) {
+                    const allRoutes = [];
+                    if (data.routes.HKI) allRoutes.push(...data.routes.HKI.map(code => ({ region: 'HKI', route_code: code })));
+                    if (data.routes.KLN) allRoutes.push(...data.routes.KLN.map(code => ({ region: 'KLN', route_code: code })));
+                    if (data.routes.NT) allRoutes.push(...data.routes.NT.map(code => ({ region: 'NT', route_code: code })));
+                    
+                    if (allRoutes.length > 0) {
+                        state.routes = allRoutes;
+                        return allRoutes;
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to fetch all routes, trying individual regions:', error);
+            }
+
+            // If that fails, try each region individually
+            const regions = ['HKI', 'KLN', 'NT'];
+            let allRoutes = [];
+
+            for (const region of regions) {
+                try {
+                    const response = await fetchAPI(`/route/${region}`);
+                    const routes = response.data?.routes || [];
+                    
+                    if (routes.length > 0) {
+                        const regionRoutes = routes.map(code => ({
+                            region,
+                            route_code: code
+                        }));
+                        allRoutes = [...allRoutes, ...regionRoutes];
+                    }
+                } catch (error) {
+                    console.warn(`Failed to fetch ${region} routes:`, error);
+                }
+            }
+
+            if (allRoutes.length === 0) {
+                throw new Error('No routes found in any region');
+            }
+
+            state.routes = allRoutes;
+            return allRoutes;
+        } catch (error) {
+            console.error('Failed to fetch routes:', error);
+            showError('Failed to load route information. Please refresh the page.');
+            throw error;
+        }
+    };
+
+    const fetchRouteDetails = async (route) => {
+        try {
+            const response = await fetchAPI(`/route/${route.region}/${route.route_code}`);
+            const routeData = response.data?.[0];
+            
+            if (!routeData) return route;
+
+            return {
+                ...route,
+                route_id: routeData.route_id,
+                orig_tc: routeData.directions?.[0]?.orig_tc || '',
+                dest_tc: routeData.directions?.[0]?.dest_tc || '',
+                orig_en: routeData.directions?.[0]?.orig_en || '',
+                dest_en: routeData.directions?.[0]?.dest_en || '',
+                route_seq: routeData.directions?.[0]?.route_seq || '1'
+            };
+        } catch (error) {
+            console.warn(`Failed to fetch details for route ${route.route_code}:`, error);
+            return route;
+        }
+    };
+
+    const fetchRouteStops = async (routeId, routeSeq) => {
+        try {
+            const response = await fetchAPI(`/route-stop/${routeId}/${routeSeq}`);
+            const stops = response.data?.route_stops;
+
+            if (!Array.isArray(stops) || stops.length === 0) {
+                throw new Error('No stops found');
+            }
+
+            return stops.map(stop => ({
+                stop_id: stop.stop_id,
+                stop_seq: stop.stop_seq,
+                name_tc: stop.name_tc || '',
+                name_en: stop.name_en || '',
+                name_sc: stop.name_sc || ''
+            }));
+        } catch (error) {
+            console.error('Failed to fetch route stops:', error);
+            showError('Failed to load stop information. Please try again.');
+            throw error;
+        }
+    };
+
+    const fetchWithRetry = async (fn, retries = 3, delay = 1000) => {
+        let lastError;
+        for (let i = 0; i < retries; i++) {
+            try {
+                return await fn();
+            } catch (error) {
+                lastError = error;
+                if (i < retries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+                }
+            }
+        }
+        throw lastError;
+    };
+
+    const fetchStopETA = async (routeId, stopId, stopSeq) => {
+        try {
+            const fetchETA = async () => {
+                const etaResponse = await fetchAPI(`/eta/route-stop/${routeId}/1/${stopSeq}`);
+                if (!etaResponse.data?.enabled) {
+                    return [];
+                }
+                return etaResponse.data?.eta || [];
+            };
+
+            return await fetchWithRetry(fetchETA);
+        } catch (error) {
+            console.warn(`Failed to fetch ETA for route ${routeId}, stop ${stopId}, seq ${stopSeq}:`, error);
+            return [];
+        }
+    };
+
+    const formatETA = (eta) => {
+        if (!eta || typeof eta.diff !== 'number') return 'No ETA';
         
-        if (elements.placeholderText) {
-            elements.placeholderText.classList.remove('hidden');
-            elements.placeholderText.style.opacity = '1';
-            elements.typingText.textContent = message;
-        }
+        const minutes = eta.diff;
+        if (minutes <= 0) return 'Arriving';
+        if (eta.remarks_en === "Scheduled") return `${minutes} mins (Scheduled)`;
+        return `${minutes} mins`;
     };
 
     const updateSearchButtonState = () => {
-        const fromValue = elements.fromInput.value.trim();
-        const toValue = elements.toInput.value.trim();
-        const isValid = state.fromInputValid && state.toInputValid;
-        const shouldDisable = !isValid || (fromValue === toValue && fromValue !== '');
-
-        if (shouldDisable) {
-            if (fromValue === toValue && fromValue !== '') {
-                showError('From and To stations cannot be the same');
-            } else if (fromValue || toValue) {
-                showError('Please select stations from the suggestions list');
-            }
-            elements.searchButton.disabled = true;
-            elements.searchContainer.classList.remove('active');
-            elements.searchContainer.style.height = '0';
-            return;
-        }
-
-        elements.searchContainer.classList.add('active');
-        elements.searchContainer.style.height = '85px';
-        elements.searchButton.classList.add('active');
-        elements.searchButton.disabled = false;
-    };
-
-    const displaySuggestions = (suggestions, container) => {
-        if (!container) return;
+        const minibusValue = elements.minibusInput.value.trim();
         
-        container.innerHTML = '';
-        if (suggestions.length === 0) {
-            container.style.display = 'none';
+        // Extract the route code from the input value (handle both simple and labeled formats)
+        const routeCode = minibusValue.split(' (')[0].trim();
+        
+        const isValid = state.routes.some(route => route.route_code === routeCode);
+        
+        elements.searchButton.disabled = !isValid;
+        elements.searchContainer.style.display = isValid ? 'block' : 'none';
+        elements.searchButton.style.display = isValid ? 'block' : 'none';
+        
+        if (isValid) {
+            setTimeout(() => {
+                elements.searchContainer.classList.add('active');
+                elements.searchButton.classList.add('active');
+            }, 10);
+        } else {
+            elements.searchButton.classList.remove('active');
+            elements.searchContainer.classList.remove('active');
+        }
+    };
+
+    const displaySuggestions = (suggestions) => {
+        elements.minibusInputSuggestions.innerHTML = '';
+        
+        if (!suggestions.length) {
+            elements.minibusInputSuggestions.style.display = 'none';
             return;
         }
 
-        suggestions.forEach(station => {
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            div.innerHTML = `
-                <div class="location-name">${station.name}</div>
-                <div class="location-details">${station.nameZh} • ${station.lines.join(' • ')}</div>
-            `;
-            div.addEventListener('click', () => {
-                const input = container === elements.fromSuggestions ? elements.fromInput : elements.toInput;
-                const otherInput = container === elements.fromSuggestions ? elements.toInput : elements.fromInput;
+        elements.minibusInputSuggestions.style.display = 'block';
+        
+        // Group suggestions by route_code to handle duplicates
+        const groupedSuggestions = suggestions.reduce((acc, route) => {
+            if (!acc[route.route_code]) {
+                acc[route.route_code] = [];
+            }
+            acc[route.route_code].push(route);
+            return acc;
+        }, {});
 
-                if (station.name === otherInput.value) {
-                    showError('You cannot select the same station for both From and To');
-                    return;
-                }
-
-                input.value = station.name;
-                if (container === elements.fromSuggestions) {
-                    state.fromInputValid = true;
-                    state.lastValidFromValue = station.name;
-                } else {
-                    state.toInputValid = true;
-                    state.lastValidToValue = station.name;
-                }
-                container.style.display = 'none';
-                updateSearchButtonState();
+        Object.entries(groupedSuggestions).forEach(([routeCode, routes]) => {
+            routes.forEach((route, index) => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                
+                // Create display text based on whether there are duplicates
+                const displayText = routes.length > 1 
+                    ? `${route.route_code} (No. ${index + 1})`
+                    : route.route_code;
+                
+                div.innerHTML = `<div class="location-name">${displayText}</div>`;
+                
+                div.addEventListener('click', async () => {
+                    // Use the same display text for the input field
+                    elements.minibusInput.value = displayText;
+                    elements.minibusInputSuggestions.style.display = 'none';
+                    
+                    // If we don't have route details yet, fetch them
+                    if (!route.orig_tc) {
+                        try {
+                            const detailedRoute = await fetchRouteDetails(route);
+                            const index = state.routes.findIndex(r => r.route_code === route.route_code);
+                            if (index !== -1) {
+                                state.routes[index] = detailedRoute;
+                            }
+                        } catch (error) {
+                            console.warn('Failed to fetch route details:', error);
+                        }
+                    }
+                    
+                    updateSearchButtonState();
+                });
+                elements.minibusInputSuggestions.appendChild(div);
             });
-            container.appendChild(div);
         });
-        container.style.display = 'block';
     };
 
-    const fetchSuggestions = (query) => {
-        query = query.toLowerCase();
-        const suggestions = minibusStops.filter(station => 
-            station.name.toLowerCase().includes(query) || 
-            station.nameZh.includes(query)
-        ).slice(0, 8);
-        return suggestions;
-    };
+    const handleInput = () => {
+        elements.minibusInput.addEventListener('input', async (e) => {
+            const query = e.target.value.trim().toUpperCase();
+            
+            const suggestions = query === '' ? [] : 
+                state.routes.filter(route => route.route_code.includes(query));
 
-    const handleInput = (input, container, validState, lastValidValue) => {
-        if (!input || !container) return;
+            // Fetch details for all matching routes
+            if (suggestions.length > 0) {
+                const detailPromises = suggestions.slice(0, 5).map(async (route) => {
+                    if (!route.orig_tc) {
+                        try {
+                            const detailedRoute = await fetchRouteDetails(route);
+                            const index = state.routes.findIndex(r => r.route_code === route.route_code);
+                            if (index !== -1) {
+                                state.routes[index] = detailedRoute;
+                            }
+                            return detailedRoute;
+                        } catch (error) {
+                            console.warn(`Failed to fetch details for route ${route.route_code}:`, error);
+                            return route;
+                        }
+                    }
+                    return route;
+                });
 
-        input.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
-            state[validState] = false;
-
-            if (query === '') {
-                container.style.display = 'none';
-                updateSearchButtonState();
-                return;
+                try {
+                    await Promise.all(detailPromises);
+                    // Update suggestions with fetched details
+                    displaySuggestions(suggestions);
+                } catch (error) {
+                    console.warn('Failed to fetch some route details:', error);
+                    displaySuggestions(suggestions);
+                }
+            } else {
+                displaySuggestions(suggestions);
             }
 
-            const suggestions = fetchSuggestions(query);
-            displaySuggestions(suggestions, container);
             updateSearchButtonState();
         });
 
-        input.addEventListener('focus', () => {
-            if (!input.value.trim()) {
-                const suggestions = fetchSuggestions('');
-                displaySuggestions(suggestions, container);
+        elements.minibusInput.addEventListener('focus', () => {
+            const query = elements.minibusInput.value.trim().toUpperCase();
+            if (query) {
+                const suggestions = state.routes.filter(route => route.route_code.includes(query));
+                displaySuggestions(suggestions);
             }
-        });
-
-        input.addEventListener('blur', () => {
-            if (!state[validState] && input.value.trim() !== '') {
-                input.value = state[lastValidValue];
-                showError('Please select a station from the suggestions list');
-            }
-            setTimeout(() => container.style.display = 'none', 200);
         });
     };
 
-    handleInput(elements.fromInput, elements.fromSuggestions, 'fromInputValid', 'lastValidFromValue');
-    handleInput(elements.toInput, elements.toSuggestions, 'toInputValid', 'lastValidToValue');
-
-    elements.searchButton.addEventListener('click', () => {
-        const fromStation = elements.fromInput.value.trim();
-        const toStation = elements.toInput.value.trim();
-
-        if (fromStation === toStation) {
-            showError('From and To stations cannot be the same');
-            return;
-        }
-
-        if (!state.fromInputValid || !state.toInputValid) {
-            showError('Please select stations from the suggestions list');
-            return;
-        }
-
-        const route = findRoute(fromStation, toStation);
-        if (route) {
-            const routeDetails = calculateRouteDetails(route);
-            showRouteInfo(fromStation, toStation, routeDetails);
-        } else {
-            showRouteInfo(fromStation, toStation, {
-                duration: 'N/A',
-                price: 'N/A',
-                steps: [{
-                    type: 'error',
-                    icon: 'error.png',
-                    title: 'No Route Available',
-                    details: 'No direct route found between these stations. Please try different stations.'
-                }]
-            });
-        }
-    });
-
-    const findRoute = (fromStation, toStation) => {
-        const fromStop = minibusStops.find(s => s.name === fromStation);
-        const toStop = minibusStops.find(s => s.name === toStation);
-
-        if (!fromStop || !toStop) return null;
-
-        // Check if stops share a line (direct route)
-        const commonLines = fromStop.lines.filter(line => 
-            toStop.lines.includes(line)
-        );
-
-        if (commonLines.length > 0) {
-            return {
-                type: "direct",
-                line: commonLines[0],
-                stops: [fromStation, toStation]
-            };
-        }
-
-        // Find route with one interchange
-        for (const fromLine of fromStop.lines) {
-            for (const toLine of toStop.lines) {
-                // Find interchange stops between these lines
-                const interchangeStops = minibusStops.filter(stop => 
-                    stop.lines.includes(fromLine) && stop.lines.includes(toLine)
-                );
-
-                if (interchangeStops.length > 0) {
-                    return {
-                        type: "interchange",
-                        routes: [
-                            { line: fromLine, from: fromStation, to: interchangeStops[0].name },
-                            { line: toLine, from: interchangeStops[0].name, to: toStation }
-                        ]
-                    };
+    const displayRouteStops = async (route) => {
+        // Fade out search button, container and placeholder text simultaneously
+        elements.searchButton.classList.remove('active');
+        elements.searchContainer.classList.remove('active');
+        elements.placeholderText.style.opacity = '0';
+        elements.placeholderText.classList.add('hidden');
+        
+        // Wait for animation to complete before hiding
+        await new Promise(resolve => setTimeout(resolve, 300));
+        elements.searchButton.style.display = 'none';
+        elements.searchContainer.style.display = 'none';
+        
+        elements.resultsContainer.innerHTML = `
+            <div class="route-header">
+                Route ${route.route_code}: ${route.orig_tc} ↔ ${route.dest_tc}
+                <div class="route-header-en">${route.orig_en} ↔ ${route.dest_en}</div>
+            </div>
+            <div class="stop-list"></div>
+            <div class="button-container">
+                <button class="refresh-all-button">Refresh ETAs</button>
+                <button class="back-button">Back to Search</button>
+            </div>
+            <style>
+                .button-container {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 0;
+                    right: 0;
+                    display: flex;
+                    justify-content: center;
+                    gap: 10px;
+                    padding: 10px;
+                    background: rgba(255, 255, 255, 0.9);
+                    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                    z-index: 100;
                 }
-            }
-        }
+                .refresh-all-button, .back-button {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 25px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                .refresh-all-button {
+                    background: #1fd655;
+                    color: white;
+                }
+                .refresh-all-button:disabled {
+                    background: #ccc;
+                    cursor: not-allowed;
+                }
+                .back-button {
+                    background: #f0f0f0;
+                    color: #333;
+                }
+                .refresh-all-button:hover:not(:disabled),
+                .back-button:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+                .stop-list {
+                    padding-bottom: 80px;
+                }
+                .eta-badge.error {
+                    color: #666;
+                    font-style: italic;
+                }
+                .stop-item {
+                    padding: 15px;
+                    border-bottom: 1px solid #eee;
+                    margin: 5px 0;
+                }
+                .stop-info {
+                    margin-bottom: 8px;
+                }
+                .eta-badge {
+                    color: #1fd655;
+                    font-weight: bold;
+                }
+            </style>
+        `;
 
-        return null;
+        const stopList = elements.resultsContainer.querySelector('.stop-list');
+        const stops = state.routeStops || [];
+
+        stops.forEach(stop => {
+            const stopDiv = document.createElement('div');
+            stopDiv.className = 'stop-item';
+            stopDiv.innerHTML = `
+                <div class="stop-info">
+                    <div class="stop-name">${stop.name_en}</div>
+                    <div class="stop-name-tc">${stop.name_tc}</div>
+                    ${stop.name_sc ? `<div class="stop-name-sc">${stop.name_sc}</div>` : ''}
+                </div>
+                <div class="eta-badge" 
+                    data-stop-id="${stop.stop_id}" 
+                    data-route-id="${route.route_id}" 
+                    data-stop-seq="${stop.stop_seq}">Loading...</div>
+            `;
+            stopList.appendChild(stopDiv);
+        });
+
+        elements.resultsContainer.classList.add('active');
+
+        const refreshButton = elements.resultsContainer.querySelector('.refresh-all-button');
+        const backButton = elements.resultsContainer.querySelector('.back-button');
+
+        let isRefreshing = false;
+        refreshButton.addEventListener('click', async () => {
+            if (isRefreshing) return;
+            isRefreshing = true;
+            refreshButton.disabled = true;
+            refreshButton.textContent = 'Updating...';
+            const etaBadges = document.querySelectorAll('.eta-badge');
+            etaBadges.forEach(badge => badge.textContent = 'Updating...');
+            await refreshAllETAs();
+            refreshButton.textContent = 'Refresh ETAs';
+            refreshButton.disabled = false;
+            isRefreshing = false;
+        });
+
+        backButton.addEventListener('click', () => {
+            clearInterval(state.refreshInterval);
+            elements.resultsContainer.classList.remove('active');
+            elements.placeholderText.classList.remove('hidden');
+            elements.placeholderText.style.opacity = '1';
+            elements.searchContainer.classList.add('active');
+            elements.searchContainer.style.display = 'block';
+            elements.minibusInput.value = '';
+            elements.resultsContainer.innerHTML = '';
+            updateSearchButtonState();
+        });
+
+        await refreshAllETAs();
+        state.refreshInterval = setInterval(refreshAllETAs, 20000);
     };
 
-    const calculateRouteDetails = (route) => {
-        const getPrice = (line) => {
-            const prices = {
-                '4C': '7.90', '5': '7.90', '2': '8.20',
-                '20M': '8.50', '32': '8.50', '1A': '7.00',
-                '3': '7.00', '95K': '9.30', '96M': '9.30',
-                '87M': '9.30', '20C': '8.90', '21K': '8.90',
-                '52K': '9.70', '54K': '9.70', '18M': '7.50',
-                '19M': '7.50'
-            };
-            return prices[line] || '7.50';
-        };
+    const refreshAllETAs = async () => {
+        const etaBadges = document.querySelectorAll('.eta-badge');
+        let hasErrors = false;
 
-        if (route.type === "direct") {
-            return {
-                duration: '15-20 mins',
-                price: getPrice(route.line),
-                steps: [
-                    { type: 'walk', icon: 'walk.png', title: 'Walk to minibus stop', details: `Head to ${route.stops[0]} minibus stop` },
-                    { type: 'minibus', icon: 'minibus.png', title: `Take minibus ${route.line}`, details: 'Direct route to destination' },
-                    { type: 'walk', icon: 'walk.png', title: 'Exit stop', details: 'Walk to your destination' }
-                ]
-            };
-        } else {
-            const firstRoute = route.routes[0];
-            const secondRoute = route.routes[1];
-            const totalPrice = (parseFloat(getPrice(firstRoute.line)) + parseFloat(getPrice(secondRoute.line))).toFixed(2);
+        const updatePromises = Array.from(etaBadges).map(async (badge) => {
+            const stopId = badge.dataset.stopId;
+            const routeId = badge.dataset.routeId;
+            const stopSeq = badge.dataset.stopSeq;
             
-            return {
-                duration: '25-35 mins',
-                price: totalPrice,
-                steps: [
-                    { type: 'walk', icon: 'walk.png', title: 'Walk to minibus stop', details: `Head to ${firstRoute.from} minibus stop` },
-                    { type: 'minibus', icon: 'minibus.png', title: `Take minibus ${firstRoute.line}`, details: `Travel to ${firstRoute.to}` },
-                    { type: 'transfer', icon: 'walk.png', title: 'Change minibus', details: `Transfer to route ${secondRoute.line} at ${firstRoute.to}` },
-                    { type: 'minibus', icon: 'minibus.png', title: `Take minibus ${secondRoute.line}`, details: `Continue to ${secondRoute.to}` },
-                    { type: 'walk', icon: 'walk.png', title: 'Exit stop', details: 'Walk to your destination' }
-                ]
-            };
+            if (!stopId || !routeId || !stopSeq) {
+                console.warn('Missing required data attributes for ETA badge');
+                badge.textContent = 'No ETA';
+            return;
+        }
+
+            try {
+                const etas = await fetchStopETA(routeId, stopId, stopSeq);
+                if (etas && etas.length > 0) {
+                    const sortedEtas = etas.sort((a, b) => (a.diff || 999) - (b.diff || 999));
+                    const nextEta = sortedEtas[0];
+                    badge.textContent = formatETA(nextEta);
+                    badge.classList.remove('error');
+        } else {
+                    badge.textContent = 'No ETA';
+                    badge.classList.remove('error');
+                }
+            } catch (error) {
+                console.warn(`Error fetching ETA for stop ${stopId}:`, error);
+                badge.textContent = 'Retry...';
+                badge.classList.add('error');
+                hasErrors = true;
+            }
+        });
+
+        try {
+            await Promise.all(updatePromises);
+            
+            // If there were errors, schedule a quick retry
+            if (hasErrors) {
+                setTimeout(refreshAllETAs, 5000);
+            }
+        } catch (error) {
+            console.error('Error updating ETAs:', error);
         }
     };
 
-    const showRouteInfo = (fromStation, toStation, routeDetails) => {
-        elements.searchButton.innerHTML = '<span class="loading-dots">Searching</span>';
-        elements.searchButton.disabled = true;
+    elements.searchButton.addEventListener('click', async () => {
+        const routeNumber = elements.minibusInput.value.trim();
+        // Extract the route code from the input value
+        const routeCode = routeNumber.split(' (')[0].trim().toUpperCase();
+        
+        let route = state.routes.find(r => r.route_code === routeCode);
+        
+        if (!route) {
+            showError('Please select a valid route number from the suggestions.');
+            return;
+        }
 
-        setTimeout(() => {
-            elements.searchContainer.classList.remove('active');
-            elements.searchButton.classList.remove('active');
-            elements.searchContainer.style.height = '0';
-
-            if (routeDetails.steps[0].type === 'error') {
-                elements.placeholderText.style.opacity = '1';
-                elements.placeholderText.classList.remove('hidden');
-                elements.typingText.textContent = 'No routes available between these stations. Please try different stations.';
-                elements.routeInfo.classList.remove('visible');
-                setTimeout(() => elements.routeInfo.classList.add('hidden'), 300);
-                elements.searchButton.innerHTML = 'Search Routes';
-                elements.searchButton.disabled = false;
+        try {
+            route = await fetchRouteDetails(route);
+            state.selectedRoute = route;
+            state.routeStops = await fetchRouteStops(
+                route.route_id || route.route_code,
+                route.route_seq
+            );
+            
+            if (!state.routeStops || state.routeStops.length === 0) {
+                showError('No stops found for this route. Please try another route.');
                 return;
             }
 
-            elements.placeholderText.style.opacity = '0';
-            setTimeout(() => {
-                elements.placeholderText.classList.add('hidden');
-                document.getElementById('from-station').textContent = fromStation;
-                document.getElementById('to-station').textContent = toStation;
-
-                const metaItems = [
-                    {icon: 'time.png', text: routeDetails.duration},
-                    {icon: 'coin.png', text: `HK$${routeDetails.price}`}
-                ].map(({icon, text}, i) => {
-                    const div = document.createElement('div');
-                    div.className = 'meta-item';
-                    div.style.cssText = 'opacity: 0; transform: translateY(10px)';
-                    div.innerHTML = `<img src="Assets/${icon}" alt="${icon.split('.')[0]}" class="meta-icon"><span>${text}</span>`;
-                    setTimeout(() => {
-                        div.style.transition = 'all 0.3s ease-out';
-                        div.style.opacity = '1';
-                        div.style.transform = 'translateY(0)';
-                    }, 50 + i * 100);
-                    return div;
-                });
-
-                elements.routeMeta.innerHTML = '';
-                metaItems.forEach(item => elements.routeMeta.appendChild(item));
-
-                elements.stepsContainer.innerHTML = routeDetails.steps.map(step => `
-                    <div class="step">
-                        <img src="Assets/${step.icon}" alt="${step.type}" class="step-icon">
-                        <div class="step-content">
-                            <div class="step-title">${step.title}</div>
-                            <div class="step-details">${step.details}</div>
-                        </div>
-                    </div>
-                `).join('');
-
-                elements.routeInfo.classList.remove('hidden');
-                setTimeout(() => {
-                    elements.routeInfo.classList.add('visible');
-                    elements.searchButton.innerHTML = 'Search Routes';
-                    elements.searchButton.disabled = false;
-                }, 50);
-            }, 300);
-        }, 500);
-    };
-
-    // Initial animation setup
-    animateWithDelay(elements.header, 100);
-    animateWithDelay(elements.locationCard, 600);
-    
-    // Show initial placeholder text with animation
-    setTimeout(() => {
-        if (elements.placeholderText) {
-            elements.placeholderText.style.opacity = '1';
-            elements.placeholderText.classList.remove('hidden');
-            typeText();
-        }
-    }, 800);
-
-    document.addEventListener('click', (e) => {
-        if (!elements.fromInput.contains(e.target) && !elements.fromSuggestions.contains(e.target)) {
-            elements.fromSuggestions.style.display = 'none';
-        }
-        if (!elements.toInput.contains(e.target) && !elements.toSuggestions.contains(e.target)) {
-            elements.toSuggestions.style.display = 'none';
+            displayRouteStops(route);
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Failed to fetch route information. Please try again.');
         }
     });
 
-    const style = document.createElement('style');
-    style.textContent = `
-        .loading-dots::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-            display: inline-block;
-            width: 0;
-            overflow: hidden;
-            vertical-align: bottom;
+    // Initialize
+    elements.searchContainer.style.display = 'none';
+    elements.searchButton.style.display = 'none';
+    elements.searchButton.disabled = true;
+            elements.placeholderText.style.opacity = '1';
+            elements.placeholderText.classList.remove('hidden');
+    elements.typingText.textContent = '';
+    elements.minibusInputContainer.classList.add('loaded');
+    elements.minibusInput.disabled = false;
+
+    // Start fetching routes
+    fetchAllRoutes()
+        .then(() => {
+            typeText();
+            handleInput();
+        })
+        .catch(error => {
+            console.error('Failed to initialize routes:', error);
+            showError('Failed to load route information. Please refresh the page.');
+        });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.minibusInputContainer.contains(e.target)) {
+            elements.minibusInputSuggestions.style.display = 'none';
         }
-        @keyframes dots {
-            to { width: 1.25em; }
-        }
-        .search-button:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-    `;
-    document.head.appendChild(style);
+    });
 });
