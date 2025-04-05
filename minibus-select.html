@@ -4,14 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
-    <title>MiniBus Selection - Lai Dou</title>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <title>Hong Kong Green Minibus ETA</title>
+    <style>
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #ff0033;
+            text-align: center;
+            margin: 20px;
+            font-weight: bold;
+            display: none;
+            padding: 10px;
+            background-color: rgba(255, 0, 51, 0.1);
+            border-radius: 5px;
+        }
+        .loading-text {
+            text-align: center;
+            margin: 10px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
     <link rel="stylesheet" href="minibus-select.css">
     <script defer src="minibus-select.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header fade-in">
-            <div class="title">MINIBUS</div>
+            <h1 class="title">MINIBUS</h1>
             <div class="nav-buttons">
                 <button class="nav-btn transport-btn" onclick="window.location.href='train-select.html'">
                     <img src="Assets/train.png" alt="Train" class="nav-icon">
@@ -24,24 +58,16 @@
                 </button>
             </div>
         </div>
-
+        
         <div class="location-card fade-in-second">
             <div class="location-input">
                 <div class="input-group">
                     <input type="text" 
-                           placeholder="From" 
-                           id="from-input" 
+                           placeholder="Minibus Number" 
+                           id="minibus-input" 
                            autocomplete="off">
-                    <img src="Assets/pin.png" alt="From location" class="location-icon">
-                    <div class="suggestions-container" id="from-suggestions"></div>
-                </div>
-                <div class="input-group">
-                    <input type="text" 
-                           placeholder="To" 
-                           id="to-input"
-                           autocomplete="off">
-                    <img src="Assets/flag.png" alt="To location" class="location-icon">
-                    <div class="suggestions-container" id="to-suggestions"></div>
+                    <img src="Assets/pin.png" alt="Minibus number" class="location-icon">
+                    <div class="suggestions-container" id="minibus-suggestions"></div>
                 </div>
             </div>
             <div class="search-container">
@@ -49,20 +75,15 @@
             </div>
         </div>
 
-        <div class="placeholder-text slide-up">
-            <span class="typing-text"></span>
-        </div>
-
-        <div class="route-info hidden">
-            <div class="route-header">
-                <div class="route-stations">
-                    <span id="from-station"></span>
-                    <img src="Assets/arrow.png" alt="to" class="route-arrow">
-                    <span id="to-station"></span>
-                </div>
-                <div class="route-meta"></div>
+        <div class="info-container">
+            <div class="placeholder-text">
+                <div class="typing-text"></div>
             </div>
-            <div class="route-steps" id="route-steps"></div>
+            <div class="loading-spinner"></div>
+            <div class="error-message"></div>
+            <div class="results-container" id="route-results">
+                <!-- Results will be dynamically inserted here -->
+            </div>
         </div>
     </div>
 </body>
