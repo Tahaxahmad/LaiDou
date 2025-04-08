@@ -4,9 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google" content="notranslate">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://data.etagmb.gov.hk https://api.allorigins.win https://corsproxy.io; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
-    <title>Hong Kong Green Minibus ETA</title>
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Resource-Policy" content="cross-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <title>Minibus Selection - Lai Dou</title>
     <style>
         .loading-spinner {
             display: none;
@@ -76,8 +79,8 @@
         </div>
 
         <div class="info-container">
-            <div class="placeholder-text">
-                <div class="typing-text"></div>
+            <div class="placeholder-text slide-up">
+                <span class="typing-text">Please input a bus number to see the ETA information for all stops along that route.</span>
             </div>
             <div class="loading-spinner"></div>
             <div class="error-message"></div>
