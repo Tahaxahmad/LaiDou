@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="route-details">
                     <div class="route-path">No bus routes found for number ${busInput.value.trim()}</div>
                 </div>
-                <div class="button-container">
+                <div class="button-group">
                     <button class="back-button">← Back to Search</button>
                 </div>
             `;
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsContainer.querySelector('.back-button').addEventListener('click', () => {
                 resultsContainer.classList.remove('active');
                 resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = 'block';
+                document.querySelector('.placeholder-text').style.display = '';
                 document.querySelector('.placeholder-text').style.opacity = '1';
                 busInput.value = '';
                 updateSearchButtonState();
@@ -225,15 +225,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('')}
             </div>
-            <div class="button-container">
-                <button class="back-button">← Back to Search</button>
+            <div class="button-group">
+                <button class="back-button">Back to Search</button>
             </div>
             <style>
                 .direction-options {
-                    margin-top: 20px;
                     display: flex;
                     flex-direction: column;
                     gap: 15px;
+                    padding: 20px 25px 80px;
+                    flex-grow: 1;
+                    overflow-y: auto;
                 }
                 .direction-option {
                     background: white;
@@ -257,27 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     font-size: 14px;
                     color: #666;
                 }
-                .button-container {
-                    margin-top: 20px;
-                    text-align: left;
-                }
-                .back-button {
-                    padding: 8px 16px;
-                    border: none;
-                    border-radius: 6px;
-                    background: #f5f5f5;
-                    color: #333;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-size: 16px;
-                    font-weight: normal;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                }
-                .back-button:hover {
-                    background: #e8e8e8;
-                }
             </style>
         `;
 
@@ -290,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsContainer.querySelector('.back-button').addEventListener('click', () => {
             resultsContainer.classList.remove('active');
             resultsContainer.innerHTML = '';
-            document.querySelector('.placeholder-text').style.display = 'block';
+            document.querySelector('.placeholder-text').style.display = '';
             document.querySelector('.placeholder-text').style.opacity = '1';
             busInput.value = '';
             updateSearchButtonState();
@@ -348,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="route-path">Failed to fetch route details: ${error.message}</div>
                         <div class="route-path">Please try again or check your network connection.</div>
                     </div>
-                    <div class="button-container">
+                    <div class="button-group">
                         <button class="back-button">← Back to Search</button>
                     </div>
                 `;
@@ -359,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resultsContainer.querySelector('.back-button').addEventListener('click', () => {
                     resultsContainer.classList.remove('active');
                     resultsContainer.innerHTML = '';
-                    document.querySelector('.placeholder-text').style.display = 'block';
+                    document.querySelector('.placeholder-text').style.display = '';
                     document.querySelector('.placeholder-text').style.opacity = '1';
                     busInput.value = '';
                     updateSearchButtonState();
@@ -426,10 +407,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="stop-list">
                         <div class="loading">Loading stops...</div>
                     </div>
-                    <div class="button-container">
-                        <button class="refresh-all-button">↻ Refresh All ETAs</button>
-                        <button class="back-button">← Back to Search</button>
-                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="refresh-all-button">Refresh ETAs</button>
+                    <button class="back-button">Back to Search</button>
                 </div>
             `;
 
@@ -471,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(refreshInterval);
                 resultsContainer.classList.remove('active');
                 resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = 'block';
+                document.querySelector('.placeholder-text').style.display = '';
                 document.querySelector('.placeholder-text').style.opacity = '1';
                 busInput.value = '';
                 updateSearchButtonState();
@@ -487,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="route-path">Failed to fetch route details: ${error.message}</div>
                     <div class="route-path">Please try again or check your network connection.</div>
                 </div>
-                <div class="button-container">
+                <div class="button-group">
                     <button class="back-button">← Back to Search</button>
                 </div>
             `;
@@ -495,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsContainer.querySelector('.back-button').addEventListener('click', () => {
                 resultsContainer.classList.remove('active');
                 resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = 'block';
+                document.querySelector('.placeholder-text').style.display = '';
                 document.querySelector('.placeholder-text').style.opacity = '1';
                 busInput.value = '';
                 updateSearchButtonState();
