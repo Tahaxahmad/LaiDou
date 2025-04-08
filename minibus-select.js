@@ -25,17 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const textToType = "Please input a bus number to see the ETA information for all stops along that route.";
-    let charIndex = 0;
 
-    const animateWithDelay = (element, delay) => {
-        setTimeout(() => element.classList.add('active'), delay);
-    };
+    const animateWithDelay = (element, delay) => setTimeout(() => element.classList.add('active'), delay);
 
     const typeText = () => {
-        if (charIndex < textToType.length) {
-            elements.typingText.textContent += textToType.charAt(charIndex++);
-            setTimeout(typeText, 15);
-        }
+        let charIndex = 0;
+        const type = () => {
+            if (charIndex < textToType.length) {
+                elements.typingText.textContent += textToType.charAt(charIndex++);
+                setTimeout(type, 15); // Match train view speed
+            }
+        };
+        type();
     };
 
     const showError = (message) => {
@@ -53,174 +54,127 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchAPI = async (endpoint) => {
-        try {
-            const url = `${API_BASE_URL}${endpoint}`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+        const proxyUrls = [
+            "https://api.allorigins.win/raw?url=",
+            "https://corsproxy.io/?"
+        ];
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        for (const proxyUrl of proxyUrls) {
+            try {
+                const encodedUrl = encodeURIComponent(`${API_BASE_URL}${endpoint}`);
+                const response = await fetch(`${proxyUrl}${encodedUrl}`, {
+                    method: 'GET',
+                    headers: {'Accept': 'application/json'}
+                });
+                
+                if (response.ok) return response.json();
+            } catch (error) {
+                console.error("Proxy attempt failed:", error);
             }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error(`API Error for ${endpoint}:`, error);
-            throw error;
         }
+
+        const directResponse = await fetch(`${API_BASE_URL}${endpoint}`, {
+            method: 'GET',
+            headers: {'Accept': 'application/json'},
+            mode: 'cors'
+        });
+        
+        if (!directResponse.ok) throw new Error(`HTTP error: ${directResponse.status}`);
+        return directResponse.json();
     };
 
     const fetchAllRoutes = async () => {
-        try {
-            // First try to get all routes at once
-            try {
-                const response = await fetchAPI('/route');
-                const data = response.data;
-                if (data && data.routes) {
-                    const allRoutes = [];
-                    if (data.routes.HKI) allRoutes.push(...data.routes.HKI.map(code => ({ region: 'HKI', route_code: code })));
-                    if (data.routes.KLN) allRoutes.push(...data.routes.KLN.map(code => ({ region: 'KLN', route_code: code })));
-                    if (data.routes.NT) allRoutes.push(...data.routes.NT.map(code => ({ region: 'NT', route_code: code })));
-                    
-                    if (allRoutes.length > 0) {
-                        state.routes = allRoutes;
-                        return allRoutes;
-                    }
-                }
-            } catch (error) {
-                console.warn('Failed to fetch all routes, trying individual regions:', error);
+        const response = await fetchAPI('/route');
+        const data = response.data;
+        
+        if (data?.routes) {
+            const allRoutes = [
+                ...(data.routes.HKI || []).map(code => ({region: 'HKI', route_code: code})),
+                ...(data.routes.KLN || []).map(code => ({region: 'KLN', route_code: code})),
+                ...(data.routes.NT || []).map(code => ({region: 'NT', route_code: code}))
+            ];
+            
+            if (allRoutes.length) {
+                state.routes = allRoutes;
+                return allRoutes;
             }
-
-            // If that fails, try each region individually
-            const regions = ['HKI', 'KLN', 'NT'];
-            let allRoutes = [];
-
-            for (const region of regions) {
-                try {
-                    const response = await fetchAPI(`/route/${region}`);
-                    const routes = response.data?.routes || [];
-                    
-                    if (routes.length > 0) {
-                        const regionRoutes = routes.map(code => ({
-                            region,
-                            route_code: code
-                        }));
-                        allRoutes = [...allRoutes, ...regionRoutes];
-                    }
-                } catch (error) {
-                    console.warn(`Failed to fetch ${region} routes:`, error);
-                }
-            }
-
-            if (allRoutes.length === 0) {
-                throw new Error('No routes found in any region');
-            }
-
-            state.routes = allRoutes;
-            return allRoutes;
-        } catch (error) {
-            console.error('Failed to fetch routes:', error);
-            showError('Failed to load route information. Please refresh the page.');
-            throw error;
         }
+
+        const regions = ['HKI', 'KLN', 'NT'];
+        const allRoutes = [];
+
+        for (const region of regions) {
+            const response = await fetchAPI(`/route/${region}`);
+            const routes = response.data?.routes || [];
+            allRoutes.push(...routes.map(code => ({region, route_code: code})));
+        }
+
+        if (!allRoutes.length) {
+            throw new Error('No routes found. Please check your connection and try again.');
+        }
+
+        state.routes = allRoutes;
+        return allRoutes;
     };
 
     const fetchRouteDetails = async (route) => {
-        try {
-            const response = await fetchAPI(`/route/${route.region}/${route.route_code}`);
-            const routeData = response.data?.[0];
-            
-            if (!routeData) return route;
+        const response = await fetchAPI(`/route/${route.region}/${route.route_code}`);
+        const routeData = response.data?.[0];
+        if (!routeData) return route;
 
-            return {
-                ...route,
-                route_id: routeData.route_id,
-                orig_tc: routeData.directions?.[0]?.orig_tc || '',
-                dest_tc: routeData.directions?.[0]?.dest_tc || '',
-                orig_en: routeData.directions?.[0]?.orig_en || '',
-                dest_en: routeData.directions?.[0]?.dest_en || '',
-                route_seq: routeData.directions?.[0]?.route_seq || '1'
-            };
-        } catch (error) {
-            console.warn(`Failed to fetch details for route ${route.route_code}:`, error);
-            return route;
-        }
+        return {
+            ...route,
+            route_id: routeData.route_id,
+            orig_tc: routeData.directions?.[0]?.orig_tc || '',
+            dest_tc: routeData.directions?.[0]?.dest_tc || '',
+            orig_en: routeData.directions?.[0]?.orig_en || '',
+            dest_en: routeData.directions?.[0]?.dest_en || '',
+            route_seq: routeData.directions?.[0]?.route_seq || '1'
+        };
     };
 
     const fetchRouteStops = async (routeId, routeSeq) => {
-        try {
-            const response = await fetchAPI(`/route-stop/${routeId}/${routeSeq}`);
-            const stops = response.data?.route_stops;
+        const response = await fetchAPI(`/route-stop/${routeId}/${routeSeq}`);
+        const stops = response.data?.route_stops;
+        if (!stops?.length) throw new Error('No stops found');
 
-            if (!Array.isArray(stops) || stops.length === 0) {
-                throw new Error('No stops found');
-            }
-
-            return stops.map(stop => ({
-                stop_id: stop.stop_id,
-                stop_seq: stop.stop_seq,
-                name_tc: stop.name_tc || '',
-                name_en: stop.name_en || '',
-                name_sc: stop.name_sc || ''
-            }));
-        } catch (error) {
-            console.error('Failed to fetch route stops:', error);
-            showError('Failed to load stop information. Please try again.');
-            throw error;
-        }
+        return stops.map(stop => ({
+            stop_id: stop.stop_id,
+            stop_seq: stop.stop_seq,
+            name_tc: stop.name_tc || '',
+            name_en: stop.name_en || '',
+            name_sc: stop.name_sc || ''
+        }));
     };
 
     const fetchWithRetry = async (fn, retries = 3, delay = 1000) => {
-        let lastError;
         for (let i = 0; i < retries; i++) {
             try {
                 return await fn();
             } catch (error) {
-                lastError = error;
-                if (i < retries - 1) {
-                    await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-                }
+                if (i === retries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
             }
         }
-        throw lastError;
     };
 
     const fetchStopETA = async (routeId, stopId, stopSeq) => {
-        try {
-            const fetchETA = async () => {
-                const etaResponse = await fetchAPI(`/eta/route-stop/${routeId}/1/${stopSeq}`);
-                if (!etaResponse.data?.enabled) {
-                    return [];
-                }
-                return etaResponse.data?.eta || [];
-            };
-
-            return await fetchWithRetry(fetchETA);
-        } catch (error) {
-            console.warn(`Failed to fetch ETA for route ${routeId}, stop ${stopId}, seq ${stopSeq}:`, error);
-            return [];
-        }
+        const fetchETA = async () => {
+            const response = await fetchAPI(`/eta/route-stop/${routeId}/1/${stopSeq}`);
+            return response.data?.enabled ? response.data?.eta || [] : [];
+        };
+        return fetchWithRetry(fetchETA);
     };
 
     const formatETA = (eta) => {
-        if (!eta || typeof eta.diff !== 'number') return 'No ETA';
-        
+        if (!eta?.diff) return 'No ETA';
         const minutes = eta.diff;
         if (minutes <= 0) return 'Arriving';
-        if (eta.remarks_en === "Scheduled") return `${minutes} mins (Scheduled)`;
-        return `${minutes} mins`;
+        return eta.remarks_en === "Scheduled" ? `${minutes} mins (Scheduled)` : `${minutes} mins`;
     };
 
     const updateSearchButtonState = () => {
-        const minibusValue = elements.minibusInput.value.trim();
-        
-        // Extract the route code from the input value (handle both simple and labeled formats)
-        const routeCode = minibusValue.split(' (')[0].trim();
-        
+        const routeCode = elements.minibusInput.value.trim().split(' (')[0].trim();
         const isValid = state.routes.some(route => route.route_code === routeCode);
         
         elements.searchButton.disabled = !isValid;
@@ -240,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const displaySuggestions = (suggestions) => {
         elements.minibusInputSuggestions.innerHTML = '';
-        
         if (!suggestions.length) {
             elements.minibusInputSuggestions.style.display = 'none';
             return;
@@ -248,12 +201,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.minibusInputSuggestions.style.display = 'block';
         
-        // Group suggestions by route_code to handle duplicates
         const groupedSuggestions = suggestions.reduce((acc, route) => {
-            if (!acc[route.route_code]) {
-                acc[route.route_code] = [];
-            }
-            acc[route.route_code].push(route);
+            (acc[route.route_code] = acc[route.route_code] || []).push(route);
             return acc;
         }, {});
 
@@ -261,30 +210,16 @@ document.addEventListener('DOMContentLoaded', () => {
             routes.forEach((route, index) => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
-                
-                // Create display text based on whether there are duplicates
-                const displayText = routes.length > 1 
-                    ? `${route.route_code} (No. ${index + 1})`
-                    : route.route_code;
-                
-                div.innerHTML = `<div class="location-name">${displayText}</div>`;
+                div.innerHTML = `<div class="location-name">${routes.length > 1 ? `${route.route_code} (No. ${index + 1})` : route.route_code}</div>`;
                 
                 div.addEventListener('click', async () => {
-                    // Use the same display text for the input field
-                    elements.minibusInput.value = displayText;
+                    elements.minibusInput.value = div.textContent;
                     elements.minibusInputSuggestions.style.display = 'none';
                     
-                    // If we don't have route details yet, fetch them
                     if (!route.orig_tc) {
-                        try {
-                            const detailedRoute = await fetchRouteDetails(route);
-                            const index = state.routes.findIndex(r => r.route_code === route.route_code);
-                            if (index !== -1) {
-                                state.routes[index] = detailedRoute;
-                            }
-                        } catch (error) {
-                            console.warn('Failed to fetch route details:', error);
-                        }
+                        const detailedRoute = await fetchRouteDetails(route);
+                        const index = state.routes.findIndex(r => r.route_code === route.route_code);
+                        if (index !== -1) state.routes[index] = detailedRoute;
                     }
                     
                     updateSearchButtonState();
@@ -297,147 +232,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleInput = () => {
         elements.minibusInput.addEventListener('input', async (e) => {
             const query = e.target.value.trim().toUpperCase();
-            
-            const suggestions = query === '' ? [] : 
-                state.routes.filter(route => route.route_code.includes(query));
+            const suggestions = query ? state.routes.filter(route => route.route_code.includes(query)) : [];
 
-            // Fetch details for all matching routes
-            if (suggestions.length > 0) {
-                const detailPromises = suggestions.slice(0, 5).map(async (route) => {
+            if (suggestions.length) {
+                const detailPromises = suggestions.slice(0, 5).map(async route => {
                     if (!route.orig_tc) {
-                        try {
-                            const detailedRoute = await fetchRouteDetails(route);
-                            const index = state.routes.findIndex(r => r.route_code === route.route_code);
-                            if (index !== -1) {
-                                state.routes[index] = detailedRoute;
-                            }
-                            return detailedRoute;
-                        } catch (error) {
-                            console.warn(`Failed to fetch details for route ${route.route_code}:`, error);
-                            return route;
-                        }
+                        const detailedRoute = await fetchRouteDetails(route);
+                        const index = state.routes.findIndex(r => r.route_code === route.route_code);
+                        if (index !== -1) state.routes[index] = detailedRoute;
+                        return detailedRoute;
                     }
                     return route;
                 });
 
-                try {
-                    await Promise.all(detailPromises);
-                    // Update suggestions with fetched details
-                    displaySuggestions(suggestions);
-                } catch (error) {
-                    console.warn('Failed to fetch some route details:', error);
-                    displaySuggestions(suggestions);
-                }
-            } else {
-                displaySuggestions(suggestions);
+                await Promise.all(detailPromises);
             }
-
+            
+            displaySuggestions(suggestions);
             updateSearchButtonState();
         });
 
         elements.minibusInput.addEventListener('focus', () => {
             const query = elements.minibusInput.value.trim().toUpperCase();
             if (query) {
-                const suggestions = state.routes.filter(route => route.route_code.includes(query));
-                displaySuggestions(suggestions);
+                displaySuggestions(state.routes.filter(route => route.route_code.includes(query)));
             }
         });
     };
 
     const displayRouteStops = async (route) => {
-        // Fade out search button, container and placeholder text simultaneously
         elements.searchButton.classList.remove('active');
         elements.searchContainer.classList.remove('active');
         elements.placeholderText.style.opacity = '0';
         elements.placeholderText.classList.add('hidden');
         
-        // Wait for animation to complete before hiding
         await new Promise(resolve => setTimeout(resolve, 300));
         elements.searchButton.style.display = 'none';
         elements.searchContainer.style.display = 'none';
         
         elements.resultsContainer.innerHTML = `
             <div class="route-header">
-                Route ${route.route_code}: ${route.orig_tc} ↔ ${route.dest_tc}
-                <div class="route-header-en">${route.orig_en} ↔ ${route.dest_en}</div>
+                <div class="route-title">${route.orig_en} → ${route.dest_en}</div>
             </div>
             <div class="stop-list"></div>
-            <div class="button-container">
+            <div class="button-group">
                 <button class="refresh-all-button">Refresh ETAs</button>
                 <button class="back-button">Back to Search</button>
             </div>
-            <style>
-                .button-container {
-                    position: fixed;
-                    bottom: 20px;
-                    left: 0;
-                    right: 0;
-                    display: flex;
-                    justify-content: center;
-                    gap: 10px;
-                    padding: 10px;
-                    background: rgba(255, 255, 255, 0.9);
-                    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-                    z-index: 100;
-                }
-                .refresh-all-button, .back-button {
-                    padding: 12px 24px;
-                    border: none;
-                    border-radius: 25px;
-                    font-size: 16px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                }
-                .refresh-all-button {
-                    background: #1fd655;
-                    color: white;
-                }
-                .refresh-all-button:disabled {
-                    background: #ccc;
-                    cursor: not-allowed;
-                }
-                .back-button {
-                    background: #f0f0f0;
-                    color: #333;
-                }
-                .refresh-all-button:hover:not(:disabled),
-                .back-button:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                }
-                .stop-list {
-                    padding-bottom: 80px;
-                }
-                .eta-badge.error {
-                    color: #666;
-                    font-style: italic;
-                }
-                .stop-item {
-                    padding: 15px;
-                    border-bottom: 1px solid #eee;
-                    margin: 5px 0;
-                }
-                .stop-info {
-                    margin-bottom: 8px;
-                }
-                .eta-badge {
-                    color: #1fd655;
-                    font-weight: bold;
-                }
-            </style>
         `;
 
         const stopList = elements.resultsContainer.querySelector('.stop-list');
-        const stops = state.routeStops || [];
-
-        stops.forEach(stop => {
+        (state.routeStops || []).forEach(stop => {
             const stopDiv = document.createElement('div');
             stopDiv.className = 'stop-item';
             stopDiv.innerHTML = `
                 <div class="stop-info">
                     <div class="stop-name">${stop.name_en}</div>
                     <div class="stop-name-tc">${stop.name_tc}</div>
-                    ${stop.name_sc ? `<div class="stop-name-sc">${stop.name_sc}</div>` : ''}
                 </div>
                 <div class="eta-badge" 
                     data-stop-id="${stop.stop_id}" 
@@ -458,8 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isRefreshing = true;
             refreshButton.disabled = true;
             refreshButton.textContent = 'Updating...';
-            const etaBadges = document.querySelectorAll('.eta-badge');
-            etaBadges.forEach(badge => badge.textContent = 'Updating...');
+            document.querySelectorAll('.eta-badge').forEach(badge => badge.textContent = 'Updating...');
             await refreshAllETAs();
             refreshButton.textContent = 'Refresh ETAs';
             refreshButton.disabled = false;
@@ -486,53 +336,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const etaBadges = document.querySelectorAll('.eta-badge');
         let hasErrors = false;
 
-        const updatePromises = Array.from(etaBadges).map(async (badge) => {
-            const stopId = badge.dataset.stopId;
-            const routeId = badge.dataset.routeId;
-            const stopSeq = badge.dataset.stopSeq;
-            
+        await Promise.all(Array.from(etaBadges).map(async badge => {
+            const {stopId, routeId, stopSeq} = badge.dataset;
             if (!stopId || !routeId || !stopSeq) {
-                console.warn('Missing required data attributes for ETA badge');
                 badge.textContent = 'No ETA';
-            return;
-        }
+                return;
+            }
 
             try {
                 const etas = await fetchStopETA(routeId, stopId, stopSeq);
-                if (etas && etas.length > 0) {
-                    const sortedEtas = etas.sort((a, b) => (a.diff || 999) - (b.diff || 999));
-                    const nextEta = sortedEtas[0];
+                if (etas?.length) {
+                    const nextEta = etas.sort((a, b) => (a.diff || 999) - (b.diff || 999))[0];
                     badge.textContent = formatETA(nextEta);
                     badge.classList.remove('error');
-        } else {
+                } else {
                     badge.textContent = 'No ETA';
                     badge.classList.remove('error');
                 }
-            } catch (error) {
-                console.warn(`Error fetching ETA for stop ${stopId}:`, error);
+            } catch {
                 badge.textContent = 'Retry...';
                 badge.classList.add('error');
                 hasErrors = true;
             }
-        });
+        }));
 
-        try {
-            await Promise.all(updatePromises);
-            
-            // If there were errors, schedule a quick retry
-            if (hasErrors) {
-                setTimeout(refreshAllETAs, 5000);
-            }
-        } catch (error) {
-            console.error('Error updating ETAs:', error);
-        }
+        if (hasErrors) setTimeout(refreshAllETAs, 5000);
     };
 
     elements.searchButton.addEventListener('click', async () => {
-        const routeNumber = elements.minibusInput.value.trim();
-        // Extract the route code from the input value
-        const routeCode = routeNumber.split(' (')[0].trim().toUpperCase();
-        
+        const routeCode = elements.minibusInput.value.trim().split(' (')[0].trim().toUpperCase();
         let route = state.routes.find(r => r.route_code === routeCode);
         
         if (!route) {
@@ -543,45 +375,38 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             route = await fetchRouteDetails(route);
             state.selectedRoute = route;
-            state.routeStops = await fetchRouteStops(
-                route.route_id || route.route_code,
-                route.route_seq
-            );
+            state.routeStops = await fetchRouteStops(route.route_id || route.route_code, route.route_seq);
             
-            if (!state.routeStops || state.routeStops.length === 0) {
+            if (!state.routeStops?.length) {
                 showError('No stops found for this route. Please try another route.');
                 return;
             }
 
             displayRouteStops(route);
-        } catch (error) {
-            console.error('Error:', error);
+        } catch {
             showError('Failed to fetch route information. Please try again.');
         }
     });
 
-    // Initialize
     elements.searchContainer.style.display = 'none';
     elements.searchButton.style.display = 'none';
     elements.searchButton.disabled = true;
-            elements.placeholderText.style.opacity = '1';
-            elements.placeholderText.classList.remove('hidden');
+    elements.placeholderText.style.opacity = '1';
+    elements.placeholderText.classList.remove('hidden');
     elements.typingText.textContent = '';
     elements.minibusInputContainer.classList.add('loaded');
     elements.minibusInput.disabled = false;
 
-    // Start fetching routes
     fetchAllRoutes()
         .then(() => {
-            typeText();
+            typeText(); // Start typing immediately
             handleInput();
         })
-        .catch(error => {
-            console.error('Failed to initialize routes:', error);
-            showError('Failed to load route information. Please refresh the page.');
+        .catch((error) => {
+            console.error('Error in fetchAllRoutes:', error);
+            showError('Failed to load route information. Please try refreshing the page.');
         });
 
-    // Close suggestions when clicking outside
     document.addEventListener('click', (e) => {
         if (!elements.minibusInputContainer.contains(e.target)) {
             elements.minibusInputSuggestions.style.display = 'none';
