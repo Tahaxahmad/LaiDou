@@ -9,9 +9,9 @@ All in one transportation app that shows the estimated time of arrival (ETA) of 
 
 ## Installation
 
-- Download the zip file from github
-- Extract all the files from the zip file
-- Open the index.html and the app should start running
+1. Download the zip file from github
+2. Extract all the files from the zip file
+3. Open the index.html and the app should start running
 ## Features
 
 - Homepage
