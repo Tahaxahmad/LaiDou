@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = () => {
             if (charIndex < textToType.length) {
                 elements.typingText.textContent += textToType.charAt(charIndex++);
-                setTimeout(type, 15); // Match train view speed
+                setTimeout(type, 15);
             }
         };
         type();
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchAllRoutes()
         .then(() => {
-            typeText(); // Start typing immediately
+            typeText();
             handleInput();
         })
         .catch((error) => {
