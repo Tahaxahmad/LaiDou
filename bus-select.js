@@ -1,38 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const header = document.querySelector('.fade-in');
-    const locationCard = document.querySelector('.fade-in-second');
-    const placeholderText = document.querySelector('.slide-up');
-    const typingText = document.querySelector('.typing-text');
+    const elements = {
+        header: document.querySelector('.header.fade-in'),
+        locationCard: document.querySelector('.location-card.fade-in-second'),
+        placeholderText: document.querySelector('.placeholder-text.slide-up'),
+        typingText: document.querySelector('.typing-text'),
+        searchButton: document.getElementById('search-routes'),
+        searchContainer: document.getElementById('search-routes').parentElement,
+        busInput: document.getElementById('bus-input'),
+        busSuggestions: document.getElementById('bus-suggestions'),
+        resultsContainer: document.getElementById('route-results'),
+        infoContainer: document.querySelector('.info-container'),
+    };
+
     const textToType = "Please input a bus number to see the ETA information for all stops along that route.";
     let charIndex = 0;
+    let currentRefreshInterval = null;
 
-    // Check URL parameters on page load
     const urlParams = new URLSearchParams(window.location.search);
     const routeParam = urlParams.get('route');
     const directionParam = urlParams.get('direction');
     const serviceTypeParam = urlParams.get('serviceType');
 
-    if (routeParam) {
-        // If route parameter exists, fetch route information immediately
-        showRouteETAs(routeParam, directionParam, serviceTypeParam);
-    } else {
-        // Otherwise, show the normal animation
-        const animateWithDelay = (element, delay) => {
-            setTimeout(() => element.classList.add('active'), delay);
-        };
+    const animateWithDelay = (element, delay) => {
+        if (element) setTimeout(() => element.classList.add('active'), delay);
+    };
 
-        const typeText = () => {
-            if (charIndex < textToType.length) {
-                typingText.textContent += textToType.charAt(charIndex++);
-                setTimeout(typeText, 15);
-            }
-        };
-
-        animateWithDelay(header, 100);
-        animateWithDelay(locationCard, 600);
-        animateWithDelay(placeholderText, 800);
-        setTimeout(typeText, 1600);
-    }
+    const typeText = () => {
+        if (elements.typingText && charIndex < textToType.length) {
+            elements.typingText.textContent += textToType.charAt(charIndex++);
+            setTimeout(typeText, 15);
+        }
+    };
 
     const debounce = (func, wait) => {
         let timeout;
@@ -42,35 +40,25 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    const searchButton = document.getElementById('search-routes');
-    const searchContainer = searchButton.parentElement;
-    const busInput = document.querySelector('input[placeholder="Bus Number"]');
-
     const updateSearchButtonState = () => {
-        const busValue = busInput.value.trim();
-        const placeholderText = document.querySelector('.placeholder-text');
+        const busValue = elements.busInput.value.trim();
         
         if (busValue) {
-            searchContainer.classList.add('active');
+            elements.searchContainer.classList.add('active');
             setTimeout(() => {
-                searchButton.classList.add('active');
-                placeholderText.classList.add('search-active');
+                elements.searchButton.classList.add('active');
+                elements.placeholderText?.classList.add('search-active');
             }, 100);
         } else {
-            searchButton.classList.remove('active');
-            placeholderText.classList.remove('search-active');
-            setTimeout(() => searchContainer.classList.remove('active'), 300);
+            elements.searchButton.classList.remove('active');
+            elements.placeholderText?.classList.remove('search-active');
+            setTimeout(() => elements.searchContainer.classList.remove('active'), 300);
         }
     };
 
     const handleInputOverflow = input => {
-        input.title = input.value.length > 30 ? input.value : '';
+        if (input) input.title = input.value.length > 30 ? input.value : '';
     };
-
-    busInput.addEventListener('input', () => {
-        handleInputOverflow(busInput);
-        updateSearchButtonState();
-    });
 
     const formatETA = etaTime => {
         if (!etaTime) return null;
@@ -79,17 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchAPI = async url => {
-        const fetchOptions = {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        };
-
+        const fetchOptions = { method: 'GET', headers: { 'Accept': 'application/json' } };
         try {
             const response = await fetch(url, fetchOptions);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
             const data = await response.json();
             if (!data?.data) throw new Error('Invalid API response format');
             return data;
@@ -99,44 +80,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const fetchWithRetry = async (fn, retries = 4, delay = 1000) => {
+        for (let i = 0; i <= retries; i++) {
+            try {
+                console.log(`API Call Attempt ${i + 1} of ${retries + 1}...`);
+                return await fn();
+            } catch (error) {
+                console.warn(`Attempt ${i + 1} failed:`, error.message);
+                if (i === retries) {
+                    console.error(`All ${retries + 1} attempts failed.`);
+                    throw error;
+                }
+                const waitTime = delay * Math.pow(2, i);
+                console.log(`Waiting ${waitTime}ms before next retry...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+        }
+        throw new Error("Retry mechanism failed unexpectedly.");
+    };
+
+    const resetToSearchView = () => {
+        if (currentRefreshInterval) clearInterval(currentRefreshInterval);
+        elements.resultsContainer.classList.remove('active');
+        elements.resultsContainer.innerHTML = '';
+        if (elements.placeholderText) {
+             elements.placeholderText.style.display = '';
+             elements.placeholderText.style.opacity = '1';
+        }
+        if (elements.busInput) elements.busInput.value = '';
+        updateSearchButtonState();
+        window.history.replaceState({}, '', window.location.pathname);
+    };
+
     const fetchRouteStops = async (route, direction, serviceType) => {
-        const [routeStopData, stopData] = await Promise.all([
-            fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route-stop'),
-            fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/stop')
-        ]);
-
-        const routeStops = routeStopData.data.filter(stop => 
-            stop.route === route && 
-            stop.bound === direction && 
-            stop.service_type === serviceType
+        const [routeStopData, stopData] = await fetchWithRetry(() => 
+            Promise.all([
+                fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route-stop'),
+                fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/stop')
+            ])
         );
-
+        const routeStops = routeStopData.data.filter(stop => 
+            stop.route === route && stop.bound === direction && stop.service_type === serviceType
+        );
         if (!routeStops.length) return [];
-
-        return routeStops
-            .map(routeStop => {
-                const stopDetail = stopData.data.find(s => s.stop === routeStop.stop);
-                return stopDetail ? {
-                    stop: routeStop.stop,
-                    name_en: stopDetail.name_en,
-                    name_tc: stopDetail.name_tc,
-                    seq: routeStop.seq
-                } : null;
-            })
-            .filter(Boolean)
-            .sort((a, b) => a.seq - b.seq);
+        return routeStops.map(routeStop => {
+            const stopDetail = stopData.data.find(s => s.stop === routeStop.stop);
+            return stopDetail ? { ...stopDetail, seq: routeStop.seq } : null;
+        }).filter(Boolean).sort((a, b) => a.seq - b.seq);
     };
 
     const fetchStopETA = async (stopId, route, serviceType) => {
         try {
-            console.log(`Fetching ETA for stop ${stopId}, route ${route}, serviceType ${serviceType}`);
-            const data = await fetchAPI(`https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${serviceType}`);
-            console.log('ETA response:', data);
-            if (!data.data || data.data.length === 0) {
-                console.log('No ETA data available for this stop');
-                return [];
-            }
-            return data.data;
+            const data = await fetchWithRetry(() => 
+                fetchAPI(`https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${serviceType}`)
+            );
+            return data.data || [];
         } catch (error) {
             console.error('Error fetching stop ETA:', error);
             return [];
@@ -146,23 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateStopETA = async (stopItem, stopId, route, serviceType) => {
         const etaContainer = stopItem.querySelector('.stop-eta');
         if (!etaContainer) return;
-
         try {
-            console.log(`Updating ETA for stop ${stopId}, route ${route}, serviceType ${serviceType}`);
             const etas = await fetchStopETA(stopId, route, serviceType);
-            console.log('ETAs received:', etas);
-            
-            const nextThreeEtas = etas
-                .map(eta => {
-                    const formattedTime = formatETA(eta.eta);
-                    console.log(`ETA time: ${eta.eta}, formatted: ${formattedTime}`);
-                    return formattedTime;
-                })
-                .filter(Boolean)
-                .slice(0, 3);
-
-            console.log('Next three ETAs:', nextThreeEtas);
-
+            const nextThreeEtas = etas.map(eta => formatETA(eta.eta)).filter(Boolean).slice(0, 3);
             etaContainer.innerHTML = nextThreeEtas.length ? 
                 nextThreeEtas.map(time => 
                     `<div class="eta-badge${time === 'Arriving' ? ' arriving' : ''}"><span>${time}</span></div>`
@@ -175,40 +159,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const refreshAllETAs = (route, direction, serviceType) => {
-        document.querySelectorAll('.stop-item').forEach(stopItem => {
+        document.querySelectorAll('.stop-item[data-stop-id]').forEach(stopItem => {
             updateStopETA(stopItem, stopItem.dataset.stopId, route, serviceType);
         });
     };
 
     const displayDirectionOptions = routes => {
-        const resultsContainer = document.getElementById('route-results');
-        resultsContainer.innerHTML = '';
-        resultsContainer.classList.add('active');
-
+        elements.resultsContainer.innerHTML = '';
+        elements.resultsContainer.classList.add('active');
         if (!routes?.length) {
-            resultsContainer.innerHTML = `
-                <div class="route-header">No routes found</div>
-                <div class="route-details">
-                    <div class="route-path">No bus routes found for number ${busInput.value.trim()}</div>
+            elements.resultsContainer.innerHTML = `
+                <div class="route-header">No routes found for ${elements.busInput.value.trim()}</div>
+                <div class="route-details" style="flex-grow: 1; padding: 20px;">
+                    <div class="route-path">Please check the bus number and try again.</div>
                 </div>
-                <div class="button-group">
-                    <button class="back-button">← Back to Search</button>
-                </div>
+                <div class="button-group"><button class="back-button">Back to Search</button></div>
             `;
-            
-            resultsContainer.querySelector('.back-button').addEventListener('click', () => {
-                resultsContainer.classList.remove('active');
-                resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = '';
-                document.querySelector('.placeholder-text').style.opacity = '1';
-                busInput.value = '';
-                updateSearchButtonState();
-            });
+            elements.resultsContainer.querySelector('.back-button').addEventListener('click', resetToSearchView);
             return;
         }
-
         const firstRoute = routes[0];
-        resultsContainer.innerHTML = `
+        elements.resultsContainer.innerHTML = `
             <div class="route-header">
                 <div>${firstRoute.route}</div>
                 <div class="route-path">${firstRoute.orig_tc} ↔ ${firstRoute.dest_tc}</div>
@@ -225,188 +196,106 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('')}
             </div>
-            <div class="button-group">
-                <button class="back-button">Back to Search</button>
-            </div>
+            <div class="button-group"><button class="back-button">Back to Search</button></div>
             <style>
-                .direction-options {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 15px;
-                    padding: 20px 25px 80px;
-                    flex-grow: 1;
-                    overflow-y: auto;
-                }
-                .direction-option {
-                    background: white;
-                    padding: 15px;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    border: 1px solid #eee;
-                }
-                .direction-option:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                }
-                .direction-header {
-                    font-size: 18px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    color: #1fd655;
-                }
-                .direction-details {
-                    font-size: 14px;
-                    color: #666;
-                }
+                .direction-options { display: flex; flex-direction: column; gap: 15px; padding: 20px 25px 80px; flex-grow: 1; overflow-y: auto; }
+                .direction-option { background: white; padding: 15px; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; border: 1px solid #eee; }
+                .direction-option:hover { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+                .direction-header { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #1fd655; }
+                .direction-details { font-size: 14px; color: #666; }
             </style>
         `;
-
-        resultsContainer.querySelectorAll('.direction-option').forEach(option => {
+        elements.resultsContainer.querySelectorAll('.direction-option').forEach(option => {
             option.addEventListener('click', () => {
                 showRouteETAs(option.dataset.route, option.dataset.bound, option.dataset.service_type);
             });
         });
-
-        resultsContainer.querySelector('.back-button').addEventListener('click', () => {
-            resultsContainer.classList.remove('active');
-            resultsContainer.innerHTML = '';
-            document.querySelector('.placeholder-text').style.display = '';
-            document.querySelector('.placeholder-text').style.opacity = '1';
-            busInput.value = '';
-            updateSearchButtonState();
-        });
+        elements.resultsContainer.querySelector('.back-button').addEventListener('click', resetToSearchView);
     };
 
     const normalizeRouteNumber = route => route.toUpperCase();
 
     const fetchSuggestions = async query => {
         try {
-            const data = await fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/');
+            const data = await fetchWithRetry(() => fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/'));
             const searchQuery = normalizeRouteNumber(query);
-            return (data.data || [])
-                .filter(route => normalizeRouteNumber(route.route).includes(searchQuery))
-                .slice(0, 10);
+            return (data.data || []).filter(route => normalizeRouteNumber(route.route).includes(searchQuery)).slice(0, 10);
         } catch (error) {
             console.error('Error fetching suggestions:', error);
             return [];
         }
     };
 
-    searchButton.addEventListener('click', async () => {
-        const busNumber = normalizeRouteNumber(busInput.value.trim());
-        
-        if (busNumber) {
-            try {
-                searchButton.textContent = 'Searching...';
-                searchButton.disabled = true;
-                
-                const data = await fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/');
-                const matchingRoutes = (data.data || []).filter(route => 
-                    normalizeRouteNumber(route.route) === busNumber
-                );
-                
-                if (matchingRoutes.length === 1) {
-                    // If there's only one route, show ETAs directly
-                    const route = matchingRoutes[0];
-                    showRouteETAs(route.route, route.bound, route.service_type);
-                } else {
-                    // If there are multiple routes, show direction options
-                    displayDirectionOptions(matchingRoutes);
-                }
-                
-                searchButton.textContent = 'Search Bus';
-                searchButton.disabled = false;
-                searchContainer.classList.remove('active');
-                document.querySelector('.placeholder-text').style.display = 'none';
-                document.querySelector('.placeholder-text').style.opacity = '0';
-            } catch (error) {
-                console.error('Error fetching route details:', error);
-                const resultsContainer = document.getElementById('route-results');
-                resultsContainer.innerHTML = `
-                    <div class="route-header">Error</div>
-                    <div class="route-details">
-                        <div class="route-path">Failed to fetch route details: ${error.message}</div>
-                        <div class="route-path">Please try again or check your network connection.</div>
-                    </div>
-                    <div class="button-group">
-                        <button class="back-button">← Back to Search</button>
-                    </div>
-                `;
-                resultsContainer.classList.add('active');
-                searchButton.textContent = 'Search Bus';
-                searchButton.disabled = false;
-
-                resultsContainer.querySelector('.back-button').addEventListener('click', () => {
-                    resultsContainer.classList.remove('active');
-                    resultsContainer.innerHTML = '';
-                    document.querySelector('.placeholder-text').style.display = '';
-                    document.querySelector('.placeholder-text').style.opacity = '1';
-                    busInput.value = '';
-                    updateSearchButtonState();
-                });
-            }
+    const displaySuggestions = suggestions => {
+        elements.busSuggestions.innerHTML = '';
+        if (!suggestions.length) {
+            elements.busSuggestions.classList.remove('active');
+            return;
         }
-    });
+        suggestions.forEach(route => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.innerHTML = `
+                <div class="location-name">${route.route}</div>
+                <div class="location-details">${route.orig_tc} ↔ ${route.dest_tc}</div>
+                <div class="location-details">${route.orig_en} ↔ ${route.dest_en}</div>
+            `;
+            div.addEventListener('click', () => {
+                elements.busInput.value = route.route;
+                elements.busSuggestions.classList.remove('active');
+                elements.searchButton.textContent = 'Searching...';
+                elements.searchButton.disabled = true;
+                elements.searchContainer.classList.remove('active');
+                if (elements.placeholderText) {
+                    elements.placeholderText.style.display = 'none';
+                    elements.placeholderText.style.opacity = '0';
+                }
+                showRouteETAs(route.route, route.bound, route.service_type);
+                elements.searchButton.textContent = 'Search Bus';
+                elements.searchButton.disabled = false;
+            });
+            elements.busSuggestions.appendChild(div);
+        });
+        elements.busSuggestions.classList.add('active');
+    };
 
     const showRouteETAs = async (route, direction, serviceType) => {
-        // Update URL with route parameters
-        const urlParams = new URLSearchParams();
-        urlParams.set('route', route);
-        if (direction) urlParams.set('direction', direction);
-        if (serviceType) urlParams.set('serviceType', serviceType);
-        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+        const newUrlParams = new URLSearchParams();
+        newUrlParams.set('route', route);
+        if (direction) newUrlParams.set('direction', direction);
+        if (serviceType) newUrlParams.set('serviceType', serviceType);
+        window.history.replaceState({}, '', `${window.location.pathname}?${newUrlParams.toString()}`);
 
-        const resultsContainer = document.getElementById('route-results');
-        resultsContainer.innerHTML = `
+        elements.resultsContainer.innerHTML = `
             <div class="route-header">Loading route ${route}...</div>
-            <div class="route-details">
-                <div class="stop-list">
-                    <div class="loading">Fetching route information...</div>
-                </div>
+            <div class="route-details" style="flex-grow: 1; display: flex; justify-content: center; align-items: center;">
+                 <div class="loading">Fetching route information...</div>
             </div>
         `;
-        resultsContainer.classList.add('active');
+        elements.resultsContainer.classList.add('active');
         
         try {
-            const routeData = await fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/');
+            const routeData = await fetchWithRetry(() => fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/'));
             const normalizedRoute = normalizeRouteNumber(route);
-            const matchingRoutes = routeData.data.filter(r => 
-                normalizeRouteNumber(r.route) === normalizedRoute
-            );
-
-            if (!matchingRoutes.length) {
-                throw new Error(`No route found for ${route}`);
-            }
+            const matchingRoutes = routeData.data.filter(r => normalizeRouteNumber(r.route) === normalizedRoute);
+            if (!matchingRoutes.length) throw new Error(`No route found for ${route}`);
 
             const matchingRoute = direction && serviceType ?
                 matchingRoutes.find(r => r.bound === direction && r.service_type === serviceType) :
                 matchingRoutes[0];
+            if (!matchingRoute) throw new Error(`No route found for ${route} with specified direction/service`);
 
-            if (!matchingRoute) {
-                throw new Error(`No route found for ${route} with specified direction and service type`);
-            }
-
-            // Use the service type from the matching route if not provided
             const finalServiceType = serviceType || matchingRoute.service_type;
             const finalDirection = direction || matchingRoute.bound;
 
-            console.log('Using route details:', {
-                route: matchingRoute.route,
-                direction: finalDirection,
-                serviceType: finalServiceType
-            });
-
-            resultsContainer.innerHTML = `
+            elements.resultsContainer.innerHTML = `
                 <div class="route-header">
                     <div>${matchingRoute.route}</div>
                     <div class="route-path">${matchingRoute.orig_tc} → ${matchingRoute.dest_tc}</div>
                     <div class="route-path">${matchingRoute.orig_en} → ${matchingRoute.dest_en}</div>
                 </div>
-                <div class="route-details">
-                    <div class="stop-list">
-                        <div class="loading">Loading stops...</div>
-                    </div>
+                <div class="route-details" style="flex-grow: 1; overflow-y: auto;">
+                    <div class="stop-list"><div class="loading">Loading stops...</div></div>
                 </div>
                 <div class="button-group">
                     <button class="refresh-all-button">Refresh ETAs</button>
@@ -415,126 +304,123 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const stops = await fetchRouteStops(route, finalDirection, finalServiceType);
-            const stopList = resultsContainer.querySelector('.stop-list');
-            
+            const stopList = elements.resultsContainer.querySelector('.stop-list');
+            if (!stopList) return; 
+
             if (!stops?.length) {
-                stopList.innerHTML = '<div class="no-stops">No stops found for this route</div>';
-                return;
+                stopList.innerHTML = '<div class="no-stops" style="padding: 20px; text-align: center;">No stops found for this route direction.</div>';
+                elements.resultsContainer.querySelector('.refresh-all-button').disabled = true;
+            } else {
+                stopList.innerHTML = '';
+                await Promise.all(stops.map(async stop => {
+                    const stopItem = document.createElement('div');
+                    stopItem.className = 'stop-item';
+                    stopItem.dataset.stopId = stop.stop;
+                    stopItem.innerHTML = `
+                        <div class="stop-info">
+                            <div class="stop-name">${stop.name_en}</div>
+                            <div class="stop-name-tc">${stop.name_tc}</div>
+                        </div>
+                        <div class="stop-eta"><div class="loading">Loading ETA...</div></div>
+                    `;
+                    stopList.appendChild(stopItem);
+                    await updateStopETA(stopItem, stop.stop, route, finalServiceType);
+                }));
+
+                if (currentRefreshInterval) clearInterval(currentRefreshInterval);
+                currentRefreshInterval = setInterval(() => {
+                    refreshAllETAs(route, finalDirection, finalServiceType);
+                }, 30000);
+
+                elements.resultsContainer.querySelector('.refresh-all-button').addEventListener('click', () => {
+                    refreshAllETAs(route, finalDirection, finalServiceType);
+                });
             }
-
-            stopList.innerHTML = '';
-            await Promise.all(stops.map(async stop => {
-                const stopItem = document.createElement('div');
-                stopItem.className = 'stop-item';
-                stopItem.dataset.stopId = stop.stop;
-                
-                stopItem.innerHTML = `
-                    <div class="stop-name">${stop.name_en}</div>
-                    <div class="stop-name-tc">${stop.name_tc}</div>
-                    <div class="stop-eta">
-                        <div class="loading">Loading ETA...</div>
-                    </div>
-                `;
-                
-                stopList.appendChild(stopItem);
-                await updateStopETA(stopItem, stop.stop, route, finalServiceType);
-            }));
-
-            const refreshInterval = setInterval(() => {
-                refreshAllETAs(route, finalDirection, finalServiceType);
-            }, 30000);
-
-            resultsContainer.querySelector('.refresh-all-button').addEventListener('click', () => {
-                refreshAllETAs(route, finalDirection, finalServiceType);
-            });
-
-            resultsContainer.querySelector('.back-button').addEventListener('click', () => {
-                clearInterval(refreshInterval);
-                resultsContainer.classList.remove('active');
-                resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = '';
-                document.querySelector('.placeholder-text').style.opacity = '1';
-                busInput.value = '';
-                updateSearchButtonState();
-                // Clear URL parameters
-                window.history.replaceState({}, '', window.location.pathname);
-            });
-
+            elements.resultsContainer.querySelector('.back-button').addEventListener('click', resetToSearchView);
         } catch (error) {
             console.error('Error in showRouteETAs:', error);
-            resultsContainer.innerHTML = `
+            elements.resultsContainer.innerHTML = `
                 <div class="route-header">Error</div>
-                <div class="route-details">
+                <div class="route-details" style="flex-grow: 1; padding: 20px 25px 80px;">
                     <div class="route-path">Failed to fetch route details: ${error.message}</div>
                     <div class="route-path">Please try again or check your network connection.</div>
                 </div>
-                <div class="button-group">
-                    <button class="back-button">← Back to Search</button>
-                </div>
+                <div class="button-group"><button class="back-button">Back to Search</button></div>
             `;
-
-            resultsContainer.querySelector('.back-button').addEventListener('click', () => {
-                resultsContainer.classList.remove('active');
-                resultsContainer.innerHTML = '';
-                document.querySelector('.placeholder-text').style.display = '';
-                document.querySelector('.placeholder-text').style.opacity = '1';
-                busInput.value = '';
-                updateSearchButtonState();
-            });
+            elements.resultsContainer.querySelector('.back-button').addEventListener('click', resetToSearchView);
         }
     };
 
-    const displaySuggestions = suggestions => {
-        const container = document.getElementById('bus-suggestions');
-        container.innerHTML = '';
-        
-        if (!suggestions.length) {
-            container.classList.remove('active');
-            return;
-        }
+    if (elements.busInput) {
+        elements.busInput.addEventListener('input', debounce(async e => {
+            handleInputOverflow(elements.busInput);
+            updateSearchButtonState();
+            const query = e.target.value.trim();
+            if (query.length < 1) {
+                elements.busSuggestions.classList.remove('active');
+                return;
+            }
+            displaySuggestions(await fetchSuggestions(query));
+        }, 300));
+    }
 
-        suggestions.forEach(route => {
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            
-            div.innerHTML = `
-                <div class="location-name">${route.route}</div>
-                <div class="location-details">${route.orig_tc} ↔ ${route.dest_tc}</div>
-                <div class="location-details">${route.orig_en} ↔ ${route.dest_en}</div>
-            `;
-            
-            div.addEventListener('click', () => {
-                busInput.value = route.route;
-                container.classList.remove('active');
-                searchButton.textContent = 'Searching...';
-                searchButton.disabled = true;
-                searchContainer.classList.remove('active');
-                document.querySelector('.placeholder-text').style.display = 'none';
-                document.querySelector('.placeholder-text').style.opacity = '0';
-                showRouteETAs(route.route, route.bound, route.service_type);
-                searchButton.textContent = 'Search Bus';
-                searchButton.disabled = false;
-            });
-            
-            container.appendChild(div);
+    if (elements.searchButton) {
+        elements.searchButton.addEventListener('click', async () => {
+            const busNumber = normalizeRouteNumber(elements.busInput.value.trim());
+            if (busNumber) {
+                try {
+                    elements.searchButton.textContent = 'Searching...';
+                    elements.searchButton.disabled = true;
+                    const data = await fetchWithRetry(() => fetchAPI('https://data.etabus.gov.hk/v1/transport/kmb/route/'));
+                    const matchingRoutes = (data.data || []).filter(route => normalizeRouteNumber(route.route) === busNumber);
+                    
+                    if (matchingRoutes.length === 0) {
+                         displayDirectionOptions([]);
+                    } else if (matchingRoutes.length === 1) {
+                        const route = matchingRoutes[0];
+                        showRouteETAs(route.route, route.bound, route.service_type);
+                    } else {
+                        displayDirectionOptions(matchingRoutes);
+                    }
+                    
+                    elements.searchButton.textContent = 'Search Bus';
+                    elements.searchButton.disabled = false;
+                    elements.searchContainer.classList.remove('active');
+                    if (elements.placeholderText) {
+                        elements.placeholderText.style.display = 'none';
+                        elements.placeholderText.style.opacity = '0';
+                    }
+                } catch (error) {
+                    console.error('Error fetching route details:', error);
+                    elements.resultsContainer.innerHTML = `
+                        <div class="route-header">Error</div>
+                        <div class="route-details" style="flex-grow: 1; padding: 20px 25px 80px;">
+                            <div class="route-path">Failed to fetch route details: ${error.message}</div>
+                            <div class="route-path">Please try again or check your network connection.</div>
+                        </div>
+                        <div class="button-group"><button class="back-button">Back to Search</button></div>
+                    `;
+                    elements.resultsContainer.classList.add('active');
+                    elements.resultsContainer.querySelector('.back-button').addEventListener('click', resetToSearchView);
+                    elements.searchButton.textContent = 'Search Bus';
+                    elements.searchButton.disabled = false;
+                }
+            }
         });
-        
-        container.classList.add('active');
-    };
-
-    busInput.addEventListener('input', debounce(async e => {
-        const query = e.target.value.trim();
-        if (query.length < 1) {
-            document.getElementById('bus-suggestions').classList.remove('active');
-            return;
-        }
-        displaySuggestions(await fetchSuggestions(query));
-    }, 300));
+    }
 
     document.addEventListener('click', e => {
-        const busSuggestions = document.getElementById('bus-suggestions');
-        if (!busInput.contains(e.target) && !busSuggestions.contains(e.target)) {
-            busSuggestions.classList.remove('active');
+        if (elements.busSuggestions && elements.busInput && !elements.busInput.contains(e.target) && !elements.busSuggestions.contains(e.target)) {
+            elements.busSuggestions.classList.remove('active');
         }
     });
+
+    if (routeParam) {
+        showRouteETAs(routeParam, directionParam, serviceTypeParam);
+    } else {
+        animateWithDelay(elements.header, 100);
+        animateWithDelay(elements.locationCard, 600);
+        animateWithDelay(elements.placeholderText, 800);
+        if (elements.typingText) setTimeout(typeText, 1600);
+    }
 });
