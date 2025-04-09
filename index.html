@@ -3,18 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Lai Dou</title>
     <link rel="stylesheet" href="index.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            theme === 'dark' ? document.documentElement.classList.add('dark-mode') : 
+                              document.documentElement.classList.remove('dark-mode');
+        })();
+    </script>
     <script defer src="index.js"></script>
 </head>
 <body>
     <header>
-        <div>
+        <div> 
             <div>
-                <h1>Hello,</h1>
-                <p>Where will you go?</p>
+                <h1></h1>
+                <p></p>
             </div>
-            <img src="Assets/Logo.png" alt="Logo" class="header-logo">
+            <div class="header-controls">
+                 <img src="Assets/Logo.png" alt="Logo" class="header-logo">
+                 <button id="theme-toggle" class="theme-toggle-button" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
+             </div>
         </div>
     </header>
     <main>
