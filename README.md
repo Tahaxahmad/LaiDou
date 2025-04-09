@@ -25,5 +25,5 @@ All in one transportation app that shows the estimated time of arrival (ETA) of 
         - Suggestion pop up with MINIBUS NUMBER. After clicking, it will take you directly to the route number showing ETAs for each stop
 - TRAIN
     - 2 text fields given to input a 'from' location and a 'to' location. After clicking search, Lai Dou will provide the train route to the location
-## Problems
-- BUS page has a problem where the API doesnt load for
+- DARK MODE
+    - Dark mode button is located at the top right of the screen. After clicking, the UI of the app will change to a darker tone.
