@@ -6,6 +6,13 @@
     <meta name="google" content="notranslate">
     <title>Train Selection - Lai Dou</title>
     <link rel="stylesheet" href="train-select.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            theme === 'dark' ? document.documentElement.classList.add('dark-mode') : 
+                              document.documentElement.classList.remove('dark-mode');
+        })();
+    </script>
     <script defer src="train-select.js"></script>
 </head>
 <body>
@@ -27,18 +34,12 @@
         <div class="location-card fade-in-second">
             <div class="location-input">
                 <div class="input-group">
-                    <input type="text" 
-                           placeholder="From" 
-                           id="from-input" 
-                           autocomplete="off">
+                    <input type="text" placeholder="From" id="from-input" autocomplete="off">
                     <img src="Assets/pin.png" alt="From location" class="location-icon">
                     <div class="suggestions-container" id="from-suggestions"></div>
                 </div>
                 <div class="input-group">
-                    <input type="text" 
-                           placeholder="To" 
-                           id="to-input"
-                           autocomplete="off">
+                    <input type="text" placeholder="To" id="to-input" autocomplete="off">
                     <img src="Assets/flag.png" alt="To location" class="location-icon">
                     <div class="suggestions-container" id="to-suggestions"></div>
                 </div>
@@ -69,4 +70,4 @@
         </div>
     </div>
 </body>
-</html> 
+</html>
