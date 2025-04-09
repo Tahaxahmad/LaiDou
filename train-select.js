@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!fromStationData || !toStationData) return null;
 
-        // Check if stations share a line
         const commonLines = fromStationData.lines.filter(line => 
             toStationData.lines.includes(line)
         );
@@ -223,56 +222,88 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // BFS to find route with minimum interchanges
-        const queue = [];
-        const visited = new Set();
+        const interchanges = [
+            { station: "Mei Foo", lines: ["Tsuen Wan", "Tuen Ma"] },
+            { station: "Central", lines: ["Island", "Tsuen Wan"] },
+            { station: "Admiralty", lines: ["Island", "Tsuen Wan"] },
+            { station: "North Point", lines: ["Island", "Tseung Kwan O"] },
+            { station: "Yau Ma Tei", lines: ["Kwun Tong", "Tsuen Wan"] },
+            { station: "Mong Kok", lines: ["Kwun Tong", "Tsuen Wan"] },
+            { station: "Prince Edward", lines: ["Kwun Tong", "Tsuen Wan"] },
+            { station: "Kowloon Tong", lines: ["Kwun Tong", "East Rail"] },
+            { station: "Tai Wai", lines: ["East Rail", "Tuen Ma"] }
+        ];
 
-        // Initialize with all possible starting lines
-        fromStationData.lines.forEach(line => {
-            queue.push({
-                currentStation: fromStation,
-                route: {
+        for (const interchange of interchanges) {
+            const fromStationToInterchange = fromStationData.lines.find(line => 
+                interchange.lines.includes(line)
+            );
+            
+            const interchangeToDestination = toStationData.lines.find(line => 
+                interchange.lines.includes(line)
+            );
+
+            if (fromStationToInterchange && interchangeToDestination && 
+                fromStationToInterchange !== interchangeToDestination) {
+                return {
                     type: "interchange",
-                    routes: []
-                },
-                visitedLines: new Set([line])
-            });
-        });
+                    routes: [
+                        {
+                            line: fromStationToInterchange,
+                            from: fromStation,
+                            to: interchange.station
+                        },
+                        {
+                            line: interchangeToDestination,
+                            from: interchange.station,
+                            to: toStation
+                        }
+                    ]
+                };
+            }
+        }
 
-        while (queue.length > 0) {
-            const { currentStation, route, visitedLines } = queue.shift();
-            const currentStationData = stations.find(s => s.name === currentStation);
+        for (const firstInterchange of interchanges) {
+            const fromStationToFirstInterchange = fromStationData.lines.find(line => 
+                firstInterchange.lines.includes(line)
+            );
 
-            if (visited.has(currentStation)) continue;
-            visited.add(currentStation);
+            if (!fromStationToFirstInterchange) continue;
 
-            for (const line of currentStationData.lines) {
-                const stationsOnLine = stations.filter(s => s.lines.includes(line));
-                
-                for (const nextStation of stationsOnLine) {
-                    if (visited.has(nextStation.name)) continue;
+            for (const secondInterchange of interchanges) {
+                if (firstInterchange.station === secondInterchange.station) continue;
 
-                    const newRoute = {
+                const connectingLine = firstInterchange.lines.find(line => 
+                    secondInterchange.lines.includes(line)
+                );
+
+                if (!connectingLine) continue;
+
+                const secondInterchangeToDestination = toStationData.lines.find(line => 
+                    secondInterchange.lines.includes(line) && line !== connectingLine
+                );
+
+                if (secondInterchangeToDestination) {
+                    return {
                         type: "interchange",
-                        routes: [...route.routes]
+                        routes: [
+                            {
+                                line: fromStationToFirstInterchange,
+                                from: fromStation,
+                                to: firstInterchange.station
+                            },
+                            {
+                                line: connectingLine,
+                                from: firstInterchange.station,
+                                to: secondInterchange.station
+                            },
+                            {
+                                line: secondInterchangeToDestination,
+                                from: secondInterchange.station,
+                                to: toStation
+                            }
+                        ]
                     };
-
-                    const lastRoute = newRoute.routes[newRoute.routes.length - 1];
-                    if (!lastRoute || lastRoute.line !== line) {
-                        newRoute.routes.push({ line, from: currentStation, to: nextStation.name });
-                    } else {
-                        lastRoute.to = nextStation.name;
-                    }
-
-                    if (nextStation.name === toStation) return newRoute;
-
-                    if (newRoute.routes.length < 4) {
-                        queue.push({
-                            currentStation: nextStation.name,
-                            route: newRoute,
-                            visitedLines: new Set([...visitedLines, line])
-                        });
-                    }
                 }
             }
         }
@@ -281,6 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const calculateRouteDetails = (route) => {
+        if (!route) return {
+            duration: 'N/A',
+            price: 'N/A',
+            steps: [{
+                type: 'error',
+                icon: 'error.png',
+                title: 'No Route Available',
+                details: 'Could not find a route between these stations.'
+            }]
+        };
+
         if (route.type === "direct") {
             return {
                 duration: '15-20 mins',
@@ -292,18 +334,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 ]
             };
         } else {
-            const firstRoute = route.routes[0];
-            const secondRoute = route.routes[1];
+            const routes = route.routes;
+            const steps = [
+                { type: 'walk', icon: 'walk.png', title: 'Walk to platform', details: `Head to Platform - ${routes[0].line}` }
+            ];
+
+            routes.forEach((segment, index) => {
+                steps.push({ 
+                    type: 'train', 
+                    icon: 'train2.png', 
+                    title: `Take ${segment.line}`, 
+                    details: `Travel to ${segment.to} station` 
+                });
+
+                if (index < routes.length - 1) {
+                    steps.push({
+                        type: 'transfer',
+                        icon: 'walk.png',
+                        title: 'Change lines',
+                        details: `Transfer to ${routes[index + 1].line} at ${segment.to}`
+                    });
+                }
+            });
+
+            steps.push({ 
+                type: 'walk', 
+                icon: 'walk.png', 
+                title: 'Exit station', 
+                details: 'Follow exit signs to your destination' 
+            });
+
+            const duration = routes.length > 2 ? '35-45 mins' : '25-30 mins';
+            const price = routes.length > 2 ? '18.50' : '15.50';
+
             return {
-                duration: '25-30 mins',
-                price: '15.50',
-                steps: [
-                    { type: 'walk', icon: 'walk.png', title: 'Walk to platform', details: `Head to Platform - ${firstRoute.line}` },
-                    { type: 'train', icon: 'train2.png', title: `Take ${firstRoute.line}`, details: `Travel to ${firstRoute.to} station` },
-                    { type: 'transfer', icon: 'walk.png', title: 'Change lines', details: `Transfer to ${secondRoute.line} at ${firstRoute.to}` },
-                    { type: 'train', icon: 'train2.png', title: `Take ${secondRoute.line}`, details: `Continue to ${secondRoute.to}` },
-                    { type: 'walk', icon: 'walk.png', title: 'Exit station', details: 'Follow exit signs to your destination' }
-                ]
+                duration: duration,
+                price: price,
+                steps: steps
             };
         }
     };
