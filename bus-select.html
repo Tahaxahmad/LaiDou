@@ -7,6 +7,13 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Bus - Lai Dou</title>
     <link rel="stylesheet" href="bus-select.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') document.documentElement.classList.add('dark-mode');
+            else document.documentElement.classList.remove('dark-mode');
+        })();
+    </script>
     <script defer src="bus-select.js"></script>
 </head>
 <body>
@@ -14,13 +21,13 @@
         <div class="header fade-in">
             <h1 class="title">BUS</h1>
             <div class="nav-buttons">
-                <button class="nav-btn transport-btn" onclick="window.location.href='train-select.html'">
+                <button class="nav-btn transport-btn" onclick="window.location.href='train-select.html'" title="Go to Train Search">
                     <img src="Assets/train.png" alt="Train" class="nav-icon">
                 </button>
-                <button class="nav-btn transport-btn" onclick="window.location.href='minibus-select.html'">
+                <button class="nav-btn transport-btn" onclick="window.location.href='minibus-select.html'" title="Go to Minibus Search">
                     <img src="Assets/minibus.png" alt="MiniBus" class="nav-icon">
                 </button>
-                <button class="nav-btn home-btn" onclick="window.location.href='index.html'">
+                <button class="nav-btn home-btn" onclick="window.location.href='index.html'" title="Go to Home">
                     <img src="Assets/home.png" alt="Home" class="nav-icon">
                 </button>
             </div>
@@ -29,11 +36,8 @@
         <div class="location-card fade-in-second">
             <div class="location-input">
                 <div class="input-group">
-                    <input type="text" 
-                           placeholder="Bus Number" 
-                           id="bus-input" 
-                           autocomplete="off">
-                    <img src="Assets/pin.png" alt="Bus number" class="location-icon">
+                    <input type="text" placeholder="Bus Number" id="bus-input" autocomplete="off">
+                    <img src="Assets/pin.png" alt="" class="location-icon">
                     <div class="suggestions-container" id="bus-suggestions"></div>
                 </div>
             </div>
@@ -46,10 +50,8 @@
             <div class="placeholder-text slide-up">
                 <span class="typing-text"></span>
             </div>
-            <div class="results-container" id="route-results">
-                <!-- Results will be dynamically inserted here -->
-            </div>
+            <div class="results-container" id="route-results"></div>
         </div>
     </div>
 </body>
-</html> 
+</html>
