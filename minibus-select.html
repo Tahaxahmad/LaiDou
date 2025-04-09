@@ -43,6 +43,13 @@
         }
     </style>
     <link rel="stylesheet" href="minibus-select.css">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            theme === 'dark' ? document.documentElement.classList.add('dark-mode') : 
+                              document.documentElement.classList.remove('dark-mode');
+        })();
+    </script>
     <script defer src="minibus-select.js"></script>
 </head>
 <body>
@@ -84,10 +91,8 @@
             </div>
             <div class="loading-spinner"></div>
             <div class="error-message"></div>
-            <div class="results-container" id="route-results">
-                <!-- Results will be dynamically inserted here -->
-            </div>
+            <div class="results-container" id="route-results"></div>
         </div>
     </div>
 </body>
-</html> 
+</html>
