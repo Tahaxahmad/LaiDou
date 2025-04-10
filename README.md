@@ -9,7 +9,15 @@ All in one transportation app that shows the estimated time of arrival (ETA) of 
 
 1. Download the zip file from github
 2. Extract all the files from the zip file
-3. Open the index.html and the app should start running
+3. Open the index.html and the app should start running 
+
+
+## If you'd like to run it locally you can do the following.
+1. Open the terminal in the folder
+2. npm init -y
+3. npm install http-server --save-dev
+4. npx http-server
+5. Follow the top link ( ip address ) the server should run locally.
 
 ## Features
 
