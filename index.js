@@ -17,6 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                })
+                .catch(error => {
+                    console.log('ServiceWorker registration failed: ', error);
+                });
+        });
+    }
+
     const elements = {
         hello: document.querySelector('header h1'),
         where: document.querySelector('header p'),
@@ -36,22 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.where.textContent = '';
     setTimeout(() => elements.logo.style.opacity = '1', 150);
 
-    function typeHello() {
-        if (indices.hello < texts.hello.length) {
-            elements.hello.textContent += texts.hello.charAt(indices.hello++);
-            setTimeout(typeHello, 150);
-        } else {
-            elements.main.classList.add('visible');
-            setTimeout(typeWhere, 500);
+    const typeText = (element, text, index, delay, callback) => {
+        if (index < text.length) {
+            element.textContent += text.charAt(index);
+            setTimeout(() => typeText(element, text, index + 1, delay, callback), delay);
+        } else if (callback) {
+            callback();
         }
-    }
+    };
 
-    function typeWhere() {
-        if (indices.where < texts.where.length) {
-            elements.where.textContent += texts.where.charAt(indices.where++);
-            setTimeout(typeWhere, 100);
-        }
-    }
-
-    typeHello();
+    typeText(elements.hello, texts.hello, 0, 150, () => {
+        elements.main.classList.add('visible');
+        setTimeout(() => typeText(elements.where, texts.where, 0, 100), 500);
+    });
 });
